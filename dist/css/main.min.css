@@ -718,6 +718,106 @@ body {
 
 html,
 body {
-  background: #292b35;
+  background: #d9d9d9;
   color: #FFF0D2;
+}
+
+.puzzle {
+  border: solid 0.3125rem transparent;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+.puzzle__piece {
+  border-top: solid 0.125rem transparent;
+  border-right: solid 0.125rem transparent;
+  border-bottom: solid 0.125rem transparent;
+  border-left: solid 0.125rem transparent;
+  position: absolute;
+  background-image: url(../img/puzzle.jpg);
+}
+
+.puzzle__piece--hidden {
+  visibility: hidden;
+}
+
+.puzzle {
+  background: rgba(0, 0, 0, 0.7);
+  border-color: black;
+}
+
+.puzzle__piece {
+  border-top-color: rgba(255, 255, 255, 0.25);
+  border-right-color: rgba(0, 0, 0, 0.25);
+  border-bottom-color: rgba(0, 0, 0, 0.25);
+  border-left-color: rgba(255, 255, 255, 0.25);
+}
+
+.puzzle--mobile {
+  height: 19.375rem;
+  width: 19.375rem;
+}
+
+.puzzle--mobile .puzzle__piece {
+  height: 6.25rem;
+  width: 6.25rem;
+  background-size: 300px 300px;
+}
+
+.puzzle--mobile .puzzle__piece[data-id='0'] {
+  background-position: 0 0;
+  top: 0;
+  left: 0;
+}
+
+.puzzle--mobile .puzzle__piece[data-id='1'] {
+  background-position: -100px 0px;
+  top: 0;
+  left: 100px;
+}
+
+.puzzle--mobile .puzzle__piece[data-id='2'] {
+  background-position: -200px 0px;
+  top: 0;
+  left: 200px;
+}
+
+.puzzle--mobile .puzzle__piece[data-id='3'] {
+  background-position: 0px -100px;
+  top: 100px;
+  left: 0px;
+}
+
+.puzzle--mobile .puzzle__piece[data-id='4'] {
+  background-position: -100px -100px;
+  top: 100px;
+  left: 100px;
+}
+
+.puzzle--mobile .puzzle__piece[data-id='5'] {
+  background-position: -200px -100px;
+  top: 100px;
+  left: 200px;
+}
+
+.puzzle--mobile .puzzle__piece[data-id='6'] {
+  background-position: 0px -200px;
+  top: 200px;
+  left: 0px;
+}
+
+.puzzle--mobile .puzzle__piece[data-id='7'] {
+  background-position: -100px -200px;
+  top: 200px;
+  left: 100px;
+}
+
+.puzzle--mobile .puzzle__piece[data-id='8'] {
+  background-position: -200px -200px;
+  top: 200px;
+  left: 200px;
 }

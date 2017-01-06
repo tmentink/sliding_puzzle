@@ -1,0 +1,75 @@
+
+// ===========================================
+// Puzzle - Mobile
+// ===========================================
+
+
+// Size
+// ===========================================  
+  .puzzle--mobile {
+    height: rem(310px);
+    width: rem(310px);
+
+
+    .puzzle__piece {
+      height: rem(100px);
+      width: rem(100px);
+      background-size: 300px 300px;
+
+
+      &[data-id='0'] {
+        background-position: 0 0;
+        top: 0;
+        left: 0;
+      }
+
+      &[data-id='1'] {
+        background-position: -100px 0px;
+        top: 0;
+        left: 100px;
+      }
+
+      &[data-id='2'] {
+        background-position: -200px 0px;
+        top: 0;
+        left: 200px;
+      }
+
+      &[data-id='3'] {
+        background-position: 0px -100px;
+        top: 100px;
+        left: 0px;
+      }
+
+      &[data-id='4'] {
+        background-position: -100px -100px;
+        top: 100px;
+        left: 100px;
+      }
+
+      &[data-id='5'] {
+        background-position: -200px -100px;
+        top: 100px;
+        left: 200px;
+      }
+
+      &[data-id='6'] {
+        background-position: 0px -200px;
+        top: 200px;
+        left: 0px;
+      }
+
+      &[data-id='7'] {
+        background-position: -100px -200px;
+        top: 200px;
+        left: 100px;
+      }
+
+      &[data-id='8'] {
+        background-position: -200px -200px;
+        top: 200px;
+        left: 200px;
+      }
+    }
+  }
+

@@ -1,0 +1,42 @@
+
+// ===========================================
+// Puzzle
+// ===========================================
+
+
+// Structure
+// ===========================================  
+  .puzzle {
+    border: solid rem(5px) transparent;
+    @include absolute-center;
+  }
+
+  .puzzle__piece {
+    border-top: solid rem(2px) transparent;
+    border-right: solid rem(2px) transparent;
+    border-bottom: solid rem(2px) transparent;
+    border-left: solid rem(2px) transparent;
+    position: absolute;
+    background-image: url(../img/puzzle.jpg);
+  }
+
+  .puzzle__piece--hidden {
+    visibility: hidden;
+  }
+
+
+// Color
+// ===========================================
+  .puzzle {
+    background: rgba(black, 0.7);
+    border-color: black;
+  }
+
+  .puzzle__piece {
+    border-top-color: rgba(white, 0.25);
+    border-right-color: rgba(black, 0.25);
+    border-bottom-color: rgba(black, 0.25);
+    border-left-color: rgba(white, 0.25);
+  }
+
+

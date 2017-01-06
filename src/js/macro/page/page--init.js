@@ -3,12 +3,12 @@
 // Page - Init
 // ===========================================
 
-  !(function(page) {
+  !(function(puzzle) {
     "use strict";
 
     $cache(document).ready(function() {
 
     });
 
-  })(page);
+  })(puzzle);
 

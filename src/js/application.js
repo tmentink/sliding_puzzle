@@ -4448,19 +4448,21 @@
 // Config
 // ===========================================
 
-  var page = (function(page) {
+  var puzzle = (function(puzzle) {
     "use strict";
 
     // Config Object
     // =======================================
-    page.config = {
-
+    puzzle.config = {
+      rowSize: 3,
+      mobileSize: 300,
+      tabletSize: 600
     };
 
 
-    return page;
+    return puzzle;
 
-  })(page || {});
+  })(puzzle || {});
 
 
 
@@ -4487,7 +4489,7 @@
     }
 
 
-    // Trottle
+    // Throttle
     // =======================================
     var throttle = function(fn, delay) {
       if (delay === undefined) { delay = 250; }
@@ -4540,11 +4542,19 @@
     }
 
 
+    // Compare Objects
+    // =======================================
+    var compareObj = function(obj1, obj2) {
+      return JSON.stringify(obj1) === JSON.stringify(obj2);
+    };
+
+
     // Public Methods
     // =======================================
     root.utility = {
       debounce: debounce,
-      throttle: throttle
+      throttle: throttle,
+      compareObj: compareObj
     };
 
     if (selector_cache) {
@@ -4558,15 +4568,183 @@
 
 
 // ===========================================
+// Puzzle - HTML
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    var buildPuzzle = function() {
+      var HTML = "";
+
+      var pieceCount = puzzle.config.rowSize * puzzle.config.rowSize;
+
+      for (var i = 1, i_end = pieceCount + 1; i < i_end; i++) {
+        HTML += buildPiece(i);
+      }
+
+      return HTML;
+    };
+
+
+
+    var buildPiece = function(i) {
+      return "<div data-id='" + i + "' class='puzzle__piece'></div>";
+    };
+
+
+    puzzle.buildPuzzle = buildPuzzle;
+
+
+    return puzzle;
+
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - Position
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    var getAllPositions = function() {
+      var posObj = {};
+
+      $cache(".puzzle__piece").each(function(){
+        var piece = $(this);
+        var id = piece.attr("data-id");
+
+        posObj[id] = piece.position();
+      });
+
+      return posObj;
+    };
+
+    puzzle.position = getAllPositions;
+
+    return puzzle;
+
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - Shuffle
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    var shuffle = function() {
+      var ids = [0,1,2,3,4,5,6,7,8];
+      var copy = [];
+      var n = ids.length;
+      var i;
+
+      while(n) {
+        i = Math.floor(Math.random() * n--);
+        copy.push(ids.splice(i, 1)[0]);
+      }
+
+      return copy;
+    };
+
+
+    var mix = function() {
+      var order = shuffle();
+
+      for (var i = 0, i_end = 9; i < i_end; i++) {
+        var piece = $cache("[data-id='" + i + "']");
+        var position = puzzle.solution[order[i]];
+        
+        piece.velocity(position, {duration: 1250});
+      }
+    };
+
+
+
+    puzzle.shuffle = mix;
+
+    return puzzle;
+
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - Sliding
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    
+
+    return puzzle;
+
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - Solution
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    puzzle.solution = {
+      0: {top: 0,   left: 0},
+      1: {top: 0,   left: 100},
+      2: {top: 0,   left: 200},
+      3: {top: 100, left: 0},
+      4: {top: 100, left: 100},
+      5: {top: 100, left: 200},
+      6: {top: 200, left: 0},
+      7: {top: 200, left: 100},
+      8: {top: 200, left: 200}
+    };
+
+    var getID = function(position) {
+      for (var prop in puzzle.solution) {
+        
+        if (utility.compareObj(puzzle.solution[prop], position)) {
+          return prop;
+        }
+      }
+    };
+
+    var getPosition = function(id) {
+      return puzzle.solution[id];
+    };
+
+    var isCorrect = function() {
+      return utility.compareObj(puzzle.position(), puzzle.solution);
+    };
+
+
+    puzzle.getID = getID;
+    puzzle.getPosition = getPosition;
+    puzzle.isCorrect = isCorrect;
+
+    return puzzle;
+
+  })(puzzle || {});
+
+
+
+// ===========================================
 // Page - Init
 // ===========================================
 
-  !(function(page) {
+  !(function(puzzle) {
     "use strict";
 
     $cache(document).ready(function() {
 
     });
 
-  })(page);
+  })(puzzle);
 

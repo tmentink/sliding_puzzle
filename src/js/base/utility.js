@@ -22,7 +22,7 @@
     }
 
 
-    // Trottle
+    // Throttle
     // =======================================
     var throttle = function(fn, delay) {
       if (delay === undefined) { delay = 250; }
@@ -75,11 +75,19 @@
     }
 
 
+    // Compare Objects
+    // =======================================
+    var compareObj = function(obj1, obj2) {
+      return JSON.stringify(obj1) === JSON.stringify(obj2);
+    };
+
+
     // Public Methods
     // =======================================
     root.utility = {
       debounce: debounce,
-      throttle: throttle
+      throttle: throttle,
+      compareObj: compareObj
     };
 
     if (selector_cache) {

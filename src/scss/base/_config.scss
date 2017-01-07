@@ -45,67 +45,25 @@
 // Color
 // ===========================================
   // Base Colors
-  $black       : #000000;
-  $white       : #FFFFFF;
+  $black  : #1A1A1A;
+  $white  : #FFFFFF;
+  $grey   : #333333;
+  $blue   : #6FC3DF;
 
-  // Theme Colors
-  $bismark     : #496e82;
-  $charade     : #292b35;
-  $faded-jade  : #478378;
-  $lotus       : #883F3F;
-  $papaya-whip : #FFF0D2;
-  $tradewind   : #69AEA1;
-
-  // Color Usage
-  $color-primary    : $charade;
-  $color-secondary  : $bismark;
-  $color-accent     : $lotus;
-  $color-links      : $tradewind;
-  $color-text       : $papaya-whip;
 
   // Color Shades
   $color-shades: (
-    primary: (
-      xx-light : lighten($color-primary, 24%),
-      x-light  : lighten($color-primary, 12%),
-      light    : lighten($color-primary, 6%),
-      base     : $color-primary
+    black: (
+      x-light   : lighten($black, 10%),
+      light     : lighten($black, 5%),
+      base      : $black,
+      dark      : darken($black, 5%)
     ),
-    secondary: (
-      xx-light : lighten($color-secondary, 24%),
-      x-light  : lighten($color-secondary, 12%),
-      light    : lighten($color-secondary, 6%),
-      base     : $color-secondary,
-      dark     : darken($color-secondary, 6%),
-      x-dark   : darken($color-secondary, 12%),
-      xx-dark  : darken($color-secondary, 24%)
-    ),
-    accent: (
-      xx-light : lighten($color-accent, 24%),
-      x-light  : lighten($color-accent, 12%),
-      light    : lighten($color-accent, 6%),
-      base     : $color-accent,
-      dark     : darken($color-accent, 6%),
-      x-dark   : darken($color-accent, 12%),
-      xx-dark  : darken($color-accent, 24%)
-    ),
-    links: (
-      xx-light : lighten($color-links, 24%),
-      x-light  : lighten($color-links, 12%),
-      light    : lighten($color-links, 6%),
-      base     : $color-links,
-      dark     : darken($color-links, 6%),
-      x-dark   : darken($color-links, 12%),
-      xx-dark  : darken($color-links, 24%)
-    ),
-    text: (
-      xx-light : lighten($color-text, 27%),
-      x-light  : lighten($color-text, 18%),
-      light    : lighten($color-text, 9%),
-      base     : $color-text,
-      dark     : darken($color-text, 9%),
-      x-dark   : darken($color-text, 18%),
-      xx-dark  : darken($color-text, 27%)
+    blue: (
+      base      : $blue,
+      dark      : darken($blue, 12%),
+      x-dark    : darken($blue, 18%),
+      xx-dark   : darken($blue, 24%)
     )
   );
 

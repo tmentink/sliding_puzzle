@@ -502,7 +502,7 @@ html {
 }
 
 .link {
-  color: #57a193;
+  color: #3daed4;
   -webkit-transition-property: color;
   transition-property: color;
   -webkit-transition-duration: 0.3s;
@@ -514,23 +514,11 @@ html {
 }
 
 .link:hover {
-  color: #69AEA1;
+  color: #6FC3DF;
 }
 
 .link:active {
-  color: #37665d;
-}
-
-.link--text-color {
-  color: #ffd176;
-}
-
-.link--text-color:hover {
-  color: #ffe1a4;
-}
-
-.link--text-color:active {
-  color: #ffc248;
+  color: #268bad;
 }
 
 .button {
@@ -544,19 +532,10 @@ html {
   user-select: none;
 }
 
-.button--accent,
-.button--outline {
-  padding: 0.78125rem;
-  border: 0.0625rem solid transparent;
-  border-radius: 0.625rem;
-}
-
 .button {
   font-size: 1.25rem;
 }
 
-.button--accent,
-.button--outline,
 .button--text {
   font-weight: bold;
   text-decoration: none;
@@ -587,105 +566,17 @@ html {
   transition-delay: 0;
 }
 
-.button--accent {
-  background: #883F3F;
-  border-color: #733535;
-  color: #FFF0D2;
-}
-
-.button--accent:hover {
-  background: #9d4949;
-}
-
-.button--accent:active {
-  background: #733535;
-  border-color: #5e2c2c;
-}
-
 .button--text {
   background: transparent;
-  color: #FFF0D2;
+  color: #3daed4;
 }
 
 .button--text:hover {
-  color: #ffe1a4;
+  color: #2ca0c6;
 }
 
 .button--text:active {
-  color: #ffd176;
-}
-
-.button--outline {
-  background: transparent;
-  border-color: #FFF0D2;
-  color: #FFF0D2;
-}
-
-.button--outline:hover {
-  background: #FFF0D2;
-  color: #883F3F;
-}
-
-.button--outline:active {
-  background: rgba(255, 240, 210, 0.9);
-}
-
-.button--icon {
-  color: #57a193;
-}
-
-.button--icon:hover {
-  color: #69AEA1;
-}
-
-.button--icon:active {
-  color: #37665d;
-}
-
-.img {
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  height: auto;
-  max-width: 100%;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-.img--top-fix {
-  margin-top: -0.0625rem;
-}
-
-.img--bot-fix {
-  margin-bottom: -0.0625rem;
-}
-
-.img--portrait {
-  display: block;
-}
-
-.img--landscape {
-  display: none;
-}
-
-@media all and (orientation: landscape) and (max-width: 64em) {
-  .img--landscape {
-    display: block;
-  }
-  .img--portrait {
-    display: none;
-  }
-}
-
-@media all and (min-width: 50em) {
-  .img--landscape {
-    display: block;
-  }
-  .img--portrait {
-    display: none;
-  }
+  color: #268bad;
 }
 
 html {
@@ -718,21 +609,49 @@ body {
 
 html,
 body {
-  background: #d9d9d9;
-  color: #FFF0D2;
+  background: #272727;
+  color: #FFFFFF;
+}
+
+#header {
+  margin: 0.9375rem 0;
+}
+
+@media all and (min-width: 43.75em) {
+  #header {
+    margin-top: 3.125rem;
+  }
+}
+
+@media all and (min-width: 64.0625em) {
+  #header {
+    margin-top: 1.5625rem;
+  }
+}
+
+#scoreboard {
+  margin: 0.46875rem auto;
+}
+
+.score {
+  margin-right: 0.46875rem;
+}
+
+#scoreboard {
+  font-size: 1.125rem;
+}
+
+#btnNewGame {
+  font-size: 1.625rem;
 }
 
 .puzzle {
-  border: solid 0.3125rem transparent;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  -webkit-transform: translate(-50%, -50%);
-  -ms-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
+  margin-right: auto;
+  margin-left: auto;
+  position: relative;
 }
 
-.puzzle__piece {
+.puzzle__tile {
   border-top: solid 0.125rem transparent;
   border-right: solid 0.125rem transparent;
   border-bottom: solid 0.125rem transparent;
@@ -741,83 +660,103 @@ body {
   background-image: url(../img/puzzle.jpg);
 }
 
-.puzzle__piece--hidden {
-  visibility: hidden;
+.puzzle__tile {
+  opacity: 1;
+  -webkit-transition-property: border, opacity;
+  transition-property: border, opacity;
+  -webkit-transition-duration: 0.5s;
+  transition-duration: 0.5s;
+  -webkit-transition-timing-function: ease-in-out;
+  transition-timing-function: ease-in-out;
+  -webkit-transition-delay: 0;
+  transition-delay: 0;
+}
+
+.puzzle__tile--hidden {
+  opacity: 0;
+}
+
+.puzzle--tiled .puzzle__tile {
+  border-top-color: rgba(255, 255, 255, 0.15);
+  border-right-color: rgba(0, 0, 0, 0.2);
+  border-bottom-color: rgba(0, 0, 0, 0.2);
+  border-left-color: rgba(255, 255, 255, 0.15);
 }
 
 .puzzle {
-  background: rgba(0, 0, 0, 0.7);
-  border-color: black;
-}
-
-.puzzle__piece {
-  border-top-color: rgba(255, 255, 255, 0.25);
-  border-right-color: rgba(0, 0, 0, 0.25);
-  border-bottom-color: rgba(0, 0, 0, 0.25);
-  border-left-color: rgba(255, 255, 255, 0.25);
+  background: #343333;
+  box-shadow: 0 0 1.5625rem 0.3125rem #1A1A1A, inset 0 0 4.6875rem 1.25rem #272727;
 }
 
 .puzzle--mobile {
-  height: 19.375rem;
-  width: 19.375rem;
+  height: 18.75rem;
+  width: 18.75rem;
 }
 
-.puzzle--mobile .puzzle__piece {
+.puzzle--mobile .puzzle__tile {
   height: 6.25rem;
   width: 6.25rem;
   background-size: 300px 300px;
 }
 
-.puzzle--mobile .puzzle__piece[data-id='0'] {
+.puzzle--mobile .puzzle__tile[data-id='0'] {
   background-position: 0 0;
   top: 0;
   left: 0;
 }
 
-.puzzle--mobile .puzzle__piece[data-id='1'] {
+.puzzle--mobile .puzzle__tile[data-id='1'] {
   background-position: -100px 0px;
   top: 0;
   left: 100px;
 }
 
-.puzzle--mobile .puzzle__piece[data-id='2'] {
+.puzzle--mobile .puzzle__tile[data-id='2'] {
   background-position: -200px 0px;
   top: 0;
   left: 200px;
 }
 
-.puzzle--mobile .puzzle__piece[data-id='3'] {
+.puzzle--mobile .puzzle__tile[data-id='3'] {
   background-position: 0px -100px;
   top: 100px;
   left: 0px;
 }
 
-.puzzle--mobile .puzzle__piece[data-id='4'] {
+.puzzle--mobile .puzzle__tile[data-id='4'] {
   background-position: -100px -100px;
   top: 100px;
   left: 100px;
 }
 
-.puzzle--mobile .puzzle__piece[data-id='5'] {
+.puzzle--mobile .puzzle__tile[data-id='5'] {
   background-position: -200px -100px;
   top: 100px;
   left: 200px;
 }
 
-.puzzle--mobile .puzzle__piece[data-id='6'] {
+.puzzle--mobile .puzzle__tile[data-id='6'] {
   background-position: 0px -200px;
   top: 200px;
   left: 0px;
 }
 
-.puzzle--mobile .puzzle__piece[data-id='7'] {
+.puzzle--mobile .puzzle__tile[data-id='7'] {
   background-position: -100px -200px;
   top: 200px;
   left: 100px;
 }
 
-.puzzle--mobile .puzzle__piece[data-id='8'] {
+.puzzle--mobile .puzzle__tile[data-id='8'] {
   background-position: -200px -200px;
   top: 200px;
   left: 200px;
+}
+
+#footer {
+  margin-top: 1.25rem;
+}
+
+#footer {
+  font-size: 1.125rem;
 }

@@ -1,0 +1,39 @@
+
+// ===========================================
+// Header
+// ===========================================
+
+
+// Structure
+// ===========================================  
+  #header {
+    margin: rem(15px) 0;
+
+    @include bp-min-width(700px) {
+      margin-top: rem(50px);
+    }
+
+    @include bp-min-width(1025px) {
+      margin-top: rem(25px);
+    }
+  }
+
+  #scoreboard {
+    margin: rem(7.5px) auto;
+  }
+
+  .score {
+    margin-right: rem(7.5px);
+  }
+
+
+// Font
+// ===========================================
+  #scoreboard {
+    font-size: rem(18px);
+  }
+
+  #btnNewGame {
+    font-size:  rem(26px);
+  }
+

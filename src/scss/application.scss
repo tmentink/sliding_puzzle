@@ -20,15 +20,16 @@
 // =================================
 @import "component/links";
 @import "component/buttons";
-@import "component/images";
 
 
 // =================================
 // Macro
 // =================================
 @import "macro/body";
+@import "macro/header";
 @import "macro/puzzle";
 @import "macro/puzzle--mobile";
 @import "macro/puzzle--tablet";
+@import "macro/footer";
 
 

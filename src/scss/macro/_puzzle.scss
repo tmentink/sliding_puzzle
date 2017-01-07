@@ -7,11 +7,12 @@
 // Structure
 // ===========================================  
   .puzzle {
-    border: solid rem(5px) transparent;
-    @include absolute-center;
+    margin-right: auto;
+    margin-left: auto;
+    position: relative;
   }
 
-  .puzzle__piece {
+  .puzzle__tile {
     border-top: solid rem(2px) transparent;
     border-right: solid rem(2px) transparent;
     border-bottom: solid rem(2px) transparent;
@@ -20,23 +21,34 @@
     background-image: url(../img/puzzle.jpg);
   }
 
-  .puzzle__piece--hidden {
-    visibility: hidden;
+  
+// Effects
+// ===========================================
+  .puzzle__tile {
+    opacity: 1;
+    @include transition("border, opacity", 0.5s, "ease-in-out");
+  }
+
+  .puzzle__tile--hidden {
+    opacity: 0;
+  }
+
+  .puzzle--tiled {
+    .puzzle__tile {
+      border-top-color: rgba(white, 0.15);
+      border-right-color: rgba(black, 0.2);
+      border-bottom-color: rgba(black, 0.2);
+      border-left-color: rgba(white, 0.15);
+    }
   }
 
 
 // Color
 // ===========================================
   .puzzle {
-    background: rgba(black, 0.7);
-    border-color: black;
+    background: color-shade(black, x-light);
+    box-shadow: 0 0 rem(25px) rem(5px)  color-shade(black),
+          inset 0 0 rem(75px) rem(20px) color-shade(black, light);
   }
 
-  .puzzle__piece {
-    border-top-color: rgba(white, 0.25);
-    border-right-color: rgba(black, 0.25);
-    border-bottom-color: rgba(black, 0.25);
-    border-left-color: rgba(white, 0.25);
-  }
-
-
+  

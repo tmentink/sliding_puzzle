@@ -30,18 +30,41 @@
 
     <div class="container-fluid">
 
+
+<!-- HEADER
+===========================================-->
+      <div id="header">
+        <h1>Sliding Puzzle</h1>
+
+        <a id="btnNewGame" class="button button--text">New Game</a>
+
+        <div id="scoreboard">
+          Moves: <span class="moves">0</span>
+        </div>
+      </div>
+
+
+<!-- PUZZLE
+===========================================-->
       <div class="puzzle puzzle--mobile">
-        <div data-id="0" class="puzzle__piece"></div>
-        <div data-id="1" class="puzzle__piece"></div>
-        <div data-id="2" class="puzzle__piece"></div>
+        <div data-id="0" class="puzzle__tile"></div>
+        <div data-id="1" class="puzzle__tile"></div>
+        <div data-id="2" class="puzzle__tile"></div>
 
-        <div data-id="3" class="puzzle__piece"></div>
-        <div data-id="4" class="puzzle__piece"></div>
-        <div data-id="5" class="puzzle__piece"></div>
+        <div data-id="3" class="puzzle__tile"></div>
+        <div data-id="4" class="puzzle__tile"></div>
+        <div data-id="5" class="puzzle__tile"></div>
 
-        <div data-id="6" class="puzzle__piece"></div>
-        <div data-id="7" class="puzzle__piece"></div>
-        <div data-id="8" class="puzzle__piece puzzle__piece--hidden"></div>
+        <div data-id="6" class="puzzle__tile"></div>
+        <div data-id="7" class="puzzle__tile"></div>
+        <div data-id="8" class="puzzle__tile"></div>
+      </div>
+
+
+<!-- FOOTER
+===========================================-->
+      <div id="footer">
+        <p>Images created by <a class="link link--underline" href="https://www.instagram.com/kellynhagan/" target="_blank">Kelly N. Hagan</a></p>
       </div>
 
     </div> <!-- .container-fluid -->

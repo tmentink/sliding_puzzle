@@ -44,7 +44,7 @@
 // ===========================================
   html,
   body {
-    background: darken(#FFF, 15%);
-    color: $color-text;
+    background: color-shade(black, light);
+    color: $white;
   }
 

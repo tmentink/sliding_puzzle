@@ -6,30 +6,41 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
+    var slide = function(id) {
+      if (puzzle.isAnimating) {
+        return false;
+      }
 
-    var slide = function(piece) {
-      var position = piece.position();
+      if (puzzle.debug || puzzle.isAdjacent(id)) {
+        var tile = $cache("[data-id='" + id + "']");
+        var options = getOptions(id);
 
-      if (!puzzle.isSliding && (puzzle.debug || puzzle.isAdjacent(position))) {
-
-        puzzle.isSliding = true;
-
-        piece.velocity(puzzle.openTile, {
-          duration: 250,
-          complete: function() {
-            puzzle.openTile = position;
-            puzzle.isSliding = false;
-            puzzle.check();
-          }
-        });
-
+        tile.velocity(puzzle.openPosition, options);
       }
     };
 
+    var getOptions = function(id) {
+      return {
+        duration: 250,
+        begin: function() {
+          puzzle.isAnimating = true;
+          puzzle.moves ++;
+          puzzle.setOpenPosition(id);
+        },
+        complete: function() {
+          puzzle.isAnimating = false;
+          puzzle.setScore();
+          puzzle.check();
+        }
+      }
+    };
+
+
+    // Public Methods
+    // =======================================
     puzzle.slide = slide;
     
 
     return puzzle;
-
   })(puzzle || {});
 

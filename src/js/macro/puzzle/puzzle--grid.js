@@ -6,19 +6,38 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
+    puzzle.grid = {
+      0: {top: 0,   left: 0},
+      1: {top: 0,   left: 100},
+      2: {top: 0,   left: 200},
+      3: {top: 100, left: 0},
+      4: {top: 100, left: 100},
+      5: {top: 100, left: 200},
+      6: {top: 200, left: 0},
+      7: {top: 200, left: 100},
+      8: {top: 200, left: 200}
+    };
 
-    var isAdjacent = function(position) {
-      var id = puzzle.getID(position);
 
-      var adjacentIDs = adjacent(id);
+    var getIDByPosition = function(position) {
+      for (var prop in puzzle.grid) {
+        
+        if (utility.compareObjects(puzzle.grid[prop], position)) {
+          return parseInt(prop);
+        }
+      }
+    };
 
-      var openID = puzzle.getID(puzzle.openTile);
+    var isAdjacent = function(id) {
+      var tilePosition = puzzle.getTilePosition(id);
+      var gridID = getIDByPosition(tilePosition);
+      var adjacentIDs = getAdjacentIDs(gridID);
+      var openID = getIDByPosition(puzzle.openPosition);
 
       return adjacentIDs.indexOf(openID) > -1;
     };
 
-
-    var adjacent = function(id) {
+    var getAdjacentIDs = function(id) {
       switch(id) {
         case 0:
           return [1,3];
@@ -49,11 +68,12 @@
       }
     };
 
-    puzzle.adjacent = adjacent;
+
+    // Public Methods
+    // =======================================
     puzzle.isAdjacent = isAdjacent;
     
 
     return puzzle;
-
   })(puzzle || {});
 

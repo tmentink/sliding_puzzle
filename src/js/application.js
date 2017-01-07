@@ -4544,8 +4544,24 @@
 
     // Compare Objects
     // =======================================
-    var compareObj = function(obj1, obj2) {
+    var compareObjects = function(obj1, obj2) {
       return JSON.stringify(obj1) === JSON.stringify(obj2);
+    };
+
+
+    // Shuffle Array
+    // =======================================
+    var shuffleArray = function(array) {
+      var shuffled = [];
+      var n = array.length;
+      var i;
+
+      while(n) {
+        i = Math.floor(Math.random() * n--);
+        shuffled.push(array.splice(i, 1)[0]);
+      }
+
+      return shuffled;
     };
 
 
@@ -4554,7 +4570,8 @@
     root.utility = {
       debounce: debounce,
       throttle: throttle,
-      compareObj: compareObj
+      compareObjects: compareObjects,
+      shuffleArray: shuffleArray
     };
 
     if (selector_cache) {
@@ -4568,25 +4585,110 @@
 
 
 // ===========================================
+// Puzzle - Core
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    var newGame = function() {
+      if (puzzle.isAnimating) {
+        return false;
+      }
+
+      puzzle.isAnimating = true;
+      puzzle.moves = 0;
+      puzzle.setScore();
+
+      var delay = 250;
+      if (!puzzle.isReady) {
+        start();
+        delay = 1000;
+      }
+
+      setTimeout(function(){
+        puzzle.shuffle();
+      }, delay);
+    };
+
+    var start = function() {
+      puzzle.isReady = true;
+      $cache(".puzzle").addClass("puzzle--tiled");
+      $cache("[data-id='8']").addClass("puzzle__tile--hidden");
+    };
+
+    var done = function() {
+      puzzle.isReady = false;
+      $cache(".puzzle").removeClass("puzzle--tiled");
+      $cache("[data-id='8']").removeClass("puzzle__tile--hidden");
+    };
+
+    var setScore = function() {
+      $cache(".moves").html(puzzle.moves);
+    };
+
+    var isCorrect = function() {
+      return utility.compareObjects(puzzle.getAllPositions(), puzzle.grid);
+    }
+
+    var check = function() {
+      if (isCorrect()) {
+        done();
+      }
+    };
+
+
+    // Public Methods
+    // =======================================
+    puzzle.newGame = newGame;
+    puzzle.setScore = setScore;
+    puzzle.check = check;
+
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
 // Puzzle - Grid
 // ===========================================
 
   var puzzle = (function(puzzle) {
     "use strict";
 
+    puzzle.grid = {
+      0: {top: 0,   left: 0},
+      1: {top: 0,   left: 100},
+      2: {top: 0,   left: 200},
+      3: {top: 100, left: 0},
+      4: {top: 100, left: 100},
+      5: {top: 100, left: 200},
+      6: {top: 200, left: 0},
+      7: {top: 200, left: 100},
+      8: {top: 200, left: 200}
+    };
 
-    var isAdjacent = function(position) {
-      var id = puzzle.getID(position);
 
-      var adjacentIDs = adjacent(id);
+    var getIDByPosition = function(position) {
+      for (var prop in puzzle.grid) {
+        
+        if (utility.compareObjects(puzzle.grid[prop], position)) {
+          return parseInt(prop);
+        }
+      }
+    };
 
-      var openID = puzzle.getID(puzzle.openTile);
+    var isAdjacent = function(id) {
+      var tilePosition = puzzle.getTilePosition(id);
+      var gridID = getIDByPosition(tilePosition);
+      var adjacentIDs = getAdjacentIDs(gridID);
+      var openID = getIDByPosition(puzzle.openPosition);
 
       return adjacentIDs.indexOf(openID) > -1;
     };
 
-
-    var adjacent = function(id) {
+    var getAdjacentIDs = function(id) {
       switch(id) {
         case 0:
           return [1,3];
@@ -4617,47 +4719,13 @@
       }
     };
 
-    puzzle.adjacent = adjacent;
+
+    // Public Methods
+    // =======================================
     puzzle.isAdjacent = isAdjacent;
     
 
     return puzzle;
-
-  })(puzzle || {});
-
-
-
-// ===========================================
-// Puzzle - HTML
-// ===========================================
-
-  var puzzle = (function(puzzle) {
-    "use strict";
-
-    var buildPuzzle = function() {
-      var HTML = "";
-
-      var pieceCount = puzzle.config.rowSize * puzzle.config.rowSize;
-
-      for (var i = 1, i_end = pieceCount + 1; i < i_end; i++) {
-        HTML += buildPiece(i);
-      }
-
-      return HTML;
-    };
-
-
-
-    var buildPiece = function(i) {
-      return "<div data-id='" + i + "' class='puzzle__piece'></div>";
-    };
-
-
-    puzzle.buildPuzzle = buildPuzzle;
-
-
-    return puzzle;
-
   })(puzzle || {});
 
 
@@ -4672,29 +4740,33 @@
     var getAllPositions = function() {
       var posObj = {};
 
-      $cache(".puzzle__piece").each(function(){
-        var piece = $(this);
-        var id = piece.attr("data-id");
+      $cache(".puzzle__tile").each(function(){
+        var tile = $(this);
+        var id = tile.attr("data-id");
 
-        posObj[id] = piece.position();
+        posObj[id] = tile.position();
       });
 
       return posObj;
     };
 
+    var getTilePosition = function(id) {
+      return $cache("[data-id='" + id + "']").position();
+    }
 
-    var setOpenTile = function(id) {
-      puzzle.openTile = $cache("[data-id='" + id + "']").position();
-
-      $cache("[data-id='" + id + "']").velocity(puzzle.solution[8]);
+    var setOpenPosition = function(id) {
+      puzzle.openPosition = $cache("[data-id='" + id + "']").position();
     };
 
 
-    puzzle.position = getAllPositions;
-    puzzle.setOpenTile = setOpenTile;
+    // Public Methods
+    // =======================================
+    puzzle.getAllPositions = getAllPositions;
+    puzzle.getTilePosition = getTilePosition;
+    puzzle.setOpenPosition = setOpenPosition;
+
 
     return puzzle;
-
   })(puzzle || {});
 
 
@@ -4708,43 +4780,39 @@
 
     var shuffle = function() {
       var ids = [0,1,2,3,4,5,6,7,8];
-      var copy = [];
-      var n = ids.length;
-      var i;
+      var order = utility.shuffleArray(ids);
 
-      while(n) {
-        i = Math.floor(Math.random() * n--);
-        copy.push(ids.splice(i, 1)[0]);
-      }
-
-      return copy;
-    };
-
-
-    var mix = function() {
-      var order = shuffle();
-      var options = {duration: 1250}
-      
       for (var i = 0, i_end = 9; i < i_end; i++) {
-        var piece = $cache("[data-id='" + i + "']");
-        var position = puzzle.solution[order[i]];
+        var tile = $cache("[data-id='" + i + "']");
+        var position = puzzle.grid[order[i]];
+        var options = getOptions(i);
         
-        if (i == 8) {
-          options.complete = function() {
-            puzzle.setOpenTile(8);
-          };
-        }
-
-        piece.velocity(position, options);
+        tile.velocity(position, options);
       }      
     };
 
+    var getOptions = function(i) {
+      var options = {duration: 1250};
+
+      if (i == 8) {
+        options.complete = function() {
+          puzzle.setOpenPosition(8);
+          var position = puzzle.grid[8];
+          $cache("[data-id='8']").velocity(position);
+          puzzle.isAnimating = false;
+        };
+      }
+
+      return options;
+    };
 
 
-    puzzle.shuffle = mix;
+    // Public Methods
+    // =======================================
+    puzzle.shuffle = shuffle;
+    
 
     return puzzle;
-
   })(puzzle || {});
 
 
@@ -4756,85 +4824,42 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
+    var slide = function(id) {
+      if (puzzle.isAnimating) {
+        return false;
+      }
 
-    var slide = function(piece) {
-      var position = piece.position();
+      if (puzzle.debug || puzzle.isAdjacent(id)) {
+        var tile = $cache("[data-id='" + id + "']");
+        var options = getOptions(id);
 
-      if (!puzzle.isSliding && (puzzle.debug || puzzle.isAdjacent(position))) {
-
-        puzzle.isSliding = true;
-
-        piece.velocity(puzzle.openTile, {
-          duration: 250,
-          complete: function() {
-            puzzle.openTile = position;
-            puzzle.isSliding = false;
-            puzzle.check();
-          }
-        });
-
+        tile.velocity(puzzle.openPosition, options);
       }
     };
 
-    puzzle.slide = slide;
-    
-
-    return puzzle;
-
-  })(puzzle || {});
-
-
-
-// ===========================================
-// Puzzle - Solution
-// ===========================================
-
-  var puzzle = (function(puzzle) {
-    "use strict";
-
-    puzzle.solution = {
-      0: {top: 0,   left: 0},
-      1: {top: 0,   left: 100},
-      2: {top: 0,   left: 200},
-      3: {top: 100, left: 0},
-      4: {top: 100, left: 100},
-      5: {top: 100, left: 200},
-      6: {top: 200, left: 0},
-      7: {top: 200, left: 100},
-      8: {top: 200, left: 200}
-    };
-
-    var getID = function(position) {
-      for (var prop in puzzle.solution) {
-        
-        if (utility.compareObj(puzzle.solution[prop], position)) {
-          return parseInt(prop);
+    var getOptions = function(id) {
+      return {
+        duration: 250,
+        begin: function() {
+          puzzle.isAnimating = true;
+          puzzle.moves ++;
+          puzzle.setOpenPosition(id);
+        },
+        complete: function() {
+          puzzle.isAnimating = false;
+          puzzle.setScore();
+          puzzle.check();
         }
       }
     };
 
-    var getPosition = function(id) {
-      return puzzle.solution[id];
-    };
 
-    var isCorrect = function() {
-      return utility.compareObj(puzzle.position(), puzzle.solution);
-    };
-
-    var check = function() {
-      if (puzzle.isCorrect()) {
-        alert("You won!");
-      }
-    }
-
-
-    puzzle.getID = getID;
-    puzzle.getPosition = getPosition;
-    puzzle.isCorrect = isCorrect;
-    puzzle.check = check;
+    // Public Methods
+    // =======================================
+    puzzle.slide = slide;
+    
 
     return puzzle;
-
   })(puzzle || {});
 
 
@@ -4848,11 +4873,16 @@
 
     $cache(document).ready(function() {
 
-      $cache(".puzzle").on("click", ".puzzle__piece", function(){
-        var piece = $(this);
-        puzzle.slide(piece);
+      $cache("#btnNewGame").on("click", function(){
+        puzzle.newGame();
       });
 
+      $cache(".puzzle").on("click", ".puzzle__tile", function(){
+        if (puzzle.isReady) {
+          var id = $(this).attr("data-id");
+          puzzle.slide(id);
+        }
+      });
     });
 
   })(puzzle);

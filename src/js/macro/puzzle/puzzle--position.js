@@ -9,28 +9,32 @@
     var getAllPositions = function() {
       var posObj = {};
 
-      $cache(".puzzle__piece").each(function(){
-        var piece = $(this);
-        var id = piece.attr("data-id");
+      $cache(".puzzle__tile").each(function(){
+        var tile = $(this);
+        var id = tile.attr("data-id");
 
-        posObj[id] = piece.position();
+        posObj[id] = tile.position();
       });
 
       return posObj;
     };
 
+    var getTilePosition = function(id) {
+      return $cache("[data-id='" + id + "']").position();
+    }
 
-    var setOpenTile = function(id) {
-      puzzle.openTile = $cache("[data-id='" + id + "']").position();
-
-      $cache("[data-id='" + id + "']").velocity(puzzle.solution[8]);
+    var setOpenPosition = function(id) {
+      puzzle.openPosition = $cache("[data-id='" + id + "']").position();
     };
 
 
-    puzzle.position = getAllPositions;
-    puzzle.setOpenTile = setOpenTile;
+    // Public Methods
+    // =======================================
+    puzzle.getAllPositions = getAllPositions;
+    puzzle.getTilePosition = getTilePosition;
+    puzzle.setOpenPosition = setOpenPosition;
+
 
     return puzzle;
-
   })(puzzle || {});
 

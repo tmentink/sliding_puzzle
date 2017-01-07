@@ -77,8 +77,24 @@
 
     // Compare Objects
     // =======================================
-    var compareObj = function(obj1, obj2) {
+    var compareObjects = function(obj1, obj2) {
       return JSON.stringify(obj1) === JSON.stringify(obj2);
+    };
+
+
+    // Shuffle Array
+    // =======================================
+    var shuffleArray = function(array) {
+      var shuffled = [];
+      var n = array.length;
+      var i;
+
+      while(n) {
+        i = Math.floor(Math.random() * n--);
+        shuffled.push(array.splice(i, 1)[0]);
+      }
+
+      return shuffled;
     };
 
 
@@ -87,7 +103,8 @@
     root.utility = {
       debounce: debounce,
       throttle: throttle,
-      compareObj: compareObj
+      compareObjects: compareObjects,
+      shuffleArray: shuffleArray
     };
 
     if (selector_cache) {

@@ -8,11 +8,16 @@
 
     $cache(document).ready(function() {
 
-      $cache(".puzzle").on("click", ".puzzle__piece", function(){
-        var piece = $(this);
-        puzzle.slide(piece);
+      $cache("#btnNewGame").on("click", function(){
+        puzzle.newGame();
       });
 
+      $cache(".puzzle").on("click", ".puzzle__tile", function(){
+        if (puzzle.isReady) {
+          var id = $(this).attr("data-id");
+          puzzle.slide(id);
+        }
+      });
     });
 
   })(puzzle);

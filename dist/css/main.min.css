@@ -658,6 +658,7 @@ body {
   border-left: solid 0.125rem transparent;
   position: absolute;
   background-image: url(../img/puzzle.jpg);
+  z-index: 1;
 }
 
 .puzzle__tile {
@@ -674,6 +675,7 @@ body {
 
 .puzzle__tile--hidden {
   opacity: 0;
+  z-index: 0;
 }
 
 .puzzle--tiled .puzzle__tile {

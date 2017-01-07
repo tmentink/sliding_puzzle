@@ -8,42 +8,38 @@
 
     var shuffle = function() {
       var ids = [0,1,2,3,4,5,6,7,8];
-      var copy = [];
-      var n = ids.length;
-      var i;
+      var order = utility.shuffleArray(ids);
 
-      while(n) {
-        i = Math.floor(Math.random() * n--);
-        copy.push(ids.splice(i, 1)[0]);
-      }
-
-      return copy;
-    };
-
-
-    var mix = function() {
-      var order = shuffle();
-      var options = {duration: 1250}
-      
       for (var i = 0, i_end = 9; i < i_end; i++) {
-        var piece = $cache("[data-id='" + i + "']");
-        var position = puzzle.solution[order[i]];
+        var tile = $cache("[data-id='" + i + "']");
+        var position = puzzle.grid[order[i]];
+        var options = getOptions(i);
         
-        if (i == 8) {
-          options.complete = function() {
-            puzzle.setOpenTile(8);
-          };
-        }
-
-        piece.velocity(position, options);
+        tile.velocity(position, options);
       }      
     };
 
+    var getOptions = function(i) {
+      var options = {duration: 1250};
+
+      if (i == 8) {
+        options.complete = function() {
+          puzzle.setOpenPosition(8);
+          var position = puzzle.grid[8];
+          $cache("[data-id='8']").velocity(position);
+          puzzle.isAnimating = false;
+        };
+      }
+
+      return options;
+    };
 
 
-    puzzle.shuffle = mix;
+    // Public Methods
+    // =======================================
+    puzzle.shuffle = shuffle;
+    
 
     return puzzle;
-
   })(puzzle || {});
 

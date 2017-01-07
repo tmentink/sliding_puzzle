@@ -817,6 +817,71 @@ body {
   left: 300px;
 }
 
+.puzzle--desktop {
+  height: 37.5rem;
+  width: 37.5rem;
+}
+
+.puzzle--desktop .puzzle__tile {
+  height: 12.5rem;
+  width: 12.5rem;
+  background-size: 600px 600px;
+}
+
+.puzzle--desktop .puzzle__tile[data-id='0'] {
+  background-position: 0 0;
+  top: 0;
+  left: 0;
+}
+
+.puzzle--desktop .puzzle__tile[data-id='1'] {
+  background-position: -200px 0px;
+  top: 0;
+  left: 200px;
+}
+
+.puzzle--desktop .puzzle__tile[data-id='2'] {
+  background-position: -400px 0px;
+  top: 0;
+  left: 400px;
+}
+
+.puzzle--desktop .puzzle__tile[data-id='3'] {
+  background-position: 0px -200px;
+  top: 200px;
+  left: 0px;
+}
+
+.puzzle--desktop .puzzle__tile[data-id='4'] {
+  background-position: -200px -200px;
+  top: 200px;
+  left: 200px;
+}
+
+.puzzle--desktop .puzzle__tile[data-id='5'] {
+  background-position: -400px -200px;
+  top: 200px;
+  left: 400px;
+}
+
+.puzzle--desktop .puzzle__tile[data-id='6'] {
+  background-position: 0px -400px;
+  top: 400px;
+  left: 0px;
+}
+
+.puzzle--desktop .puzzle__tile[data-id='7'] {
+  background-position: -200px -400px;
+  top: 400px;
+  left: 200px;
+}
+
+.puzzle--desktop .puzzle__tile[data-id='8'] {
+  background-position: -400px -400px;
+  top: 400px;
+  left: 400px;
+}
+
 #footer {
   margin-top: 1.25rem;
 }

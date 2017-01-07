@@ -10,7 +10,8 @@
       rowSize: 3,
       puzzleSize: 300,
       mobileSize: 300,
-      tabletSize: 450
+      tabletSize: 450,
+      desktopSize: 600
     };
 
     return puzzle;

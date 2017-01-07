@@ -15,6 +15,9 @@
       else if (page.breakpoints.tablet.matches) {
         tabletInit();
       }
+      else if (page.breakpoints.desktop.matches) {
+        desktopInit();
+      }
 
       // breakpoint listeners
       page.breakpoints.mobile.addListener(function(e){
@@ -27,6 +30,13 @@
       page.breakpoints.tablet.addListener(function(e){
         if (e.matches) {
           tabletInit();
+          puzzle.newGame();
+        }
+      });
+
+      page.breakpoints.desktop.addListener(function(e){
+        if (e.matches) {
+          desktopInit();
           puzzle.newGame();
         }
       });
@@ -62,7 +72,7 @@
     // ========================================
     var mobileInit = function() {
       $cache(".puzzle")
-        .removeClass("puzzle--tablet")
+        .removeClass("puzzle--tablet puzzle--desktop")
         .addClass("puzzle--mobile");
 
       puzzle.config.puzzleSize = puzzle.config.mobileSize;
@@ -73,10 +83,21 @@
     // ========================================
     var tabletInit = function() {
       $cache(".puzzle")
-        .removeClass("puzzle--mobile")
+        .removeClass("puzzle--mobile puzzle--desktop")
         .addClass("puzzle--tablet");
 
       puzzle.config.puzzleSize = puzzle.config.tabletSize;
+    };
+    
+
+    // Desktop Init
+    // ========================================
+    var desktopInit = function() {
+      $cache(".puzzle")
+        .removeClass("puzzle--mobile puzzle--tablet")
+        .addClass("puzzle--desktop");
+
+      puzzle.config.puzzleSize = puzzle.config.desktopSize;
     };
 
   })(puzzle);

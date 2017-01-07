@@ -22,7 +22,7 @@
       for (var prop in puzzle.solution) {
         
         if (utility.compareObj(puzzle.solution[prop], position)) {
-          return prop;
+          return parseInt(prop);
         }
       }
     };
@@ -35,10 +35,17 @@
       return utility.compareObj(puzzle.position(), puzzle.solution);
     };
 
+    var check = function() {
+      if (puzzle.isCorrect()) {
+        alert("You won!");
+      }
+    }
+
 
     puzzle.getID = getID;
     puzzle.getPosition = getPosition;
     puzzle.isCorrect = isCorrect;
+    puzzle.check = check;
 
     return puzzle;
 

@@ -23,13 +23,20 @@
 
     var mix = function() {
       var order = shuffle();
-
+      var options = {duration: 1250}
+      
       for (var i = 0, i_end = 9; i < i_end; i++) {
         var piece = $cache("[data-id='" + i + "']");
         var position = puzzle.solution[order[i]];
         
-        piece.velocity(position, {duration: 1250});
-      }
+        if (i == 8) {
+          options.complete = function() {
+            puzzle.setOpenTile(8);
+          };
+        }
+
+        piece.velocity(position, options);
+      }      
     };
 
 

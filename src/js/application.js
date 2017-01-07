@@ -4568,6 +4568,66 @@
 
 
 // ===========================================
+// Puzzle - Grid
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+
+    var isAdjacent = function(position) {
+      var id = puzzle.getID(position);
+
+      var adjacentIDs = adjacent(id);
+
+      var openID = puzzle.getID(puzzle.openTile);
+
+      return adjacentIDs.indexOf(openID) > -1;
+    };
+
+
+    var adjacent = function(id) {
+      switch(id) {
+        case 0:
+          return [1,3];
+
+        case 1:
+          return [0,2,4];
+
+        case 2:
+          return [1,5];
+
+        case 3:
+          return [0,4,6];
+
+        case 4:
+          return [1,3,5,7];
+
+        case 5:
+          return [2,4,8];
+
+        case 6:
+          return [3,7];
+
+        case 7:
+          return [4,6,8];
+
+        case 8:
+          return [5,7];
+      }
+    };
+
+    puzzle.adjacent = adjacent;
+    puzzle.isAdjacent = isAdjacent;
+    
+
+    return puzzle;
+
+  })(puzzle || {});
+
+
+
+// ===========================================
 // Puzzle - HTML
 // ===========================================
 
@@ -4622,7 +4682,16 @@
       return posObj;
     };
 
+
+    var setOpenTile = function(id) {
+      puzzle.openTile = $cache("[data-id='" + id + "']").position();
+
+      $cache("[data-id='" + id + "']").velocity(puzzle.solution[8]);
+    };
+
+
     puzzle.position = getAllPositions;
+    puzzle.setOpenTile = setOpenTile;
 
     return puzzle;
 
@@ -4654,13 +4723,20 @@
 
     var mix = function() {
       var order = shuffle();
-
+      var options = {duration: 1250}
+      
       for (var i = 0, i_end = 9; i < i_end; i++) {
         var piece = $cache("[data-id='" + i + "']");
         var position = puzzle.solution[order[i]];
         
-        piece.velocity(position, {duration: 1250});
-      }
+        if (i == 8) {
+          options.complete = function() {
+            puzzle.setOpenTile(8);
+          };
+        }
+
+        piece.velocity(position, options);
+      }      
     };
 
 
@@ -4680,6 +4756,27 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
+
+    var slide = function(piece) {
+      var position = piece.position();
+
+      if (!puzzle.isSliding && (puzzle.debug || puzzle.isAdjacent(position))) {
+
+        puzzle.isSliding = true;
+
+        piece.velocity(puzzle.openTile, {
+          duration: 250,
+          complete: function() {
+            puzzle.openTile = position;
+            puzzle.isSliding = false;
+            puzzle.check();
+          }
+        });
+
+      }
+    };
+
+    puzzle.slide = slide;
     
 
     return puzzle;
@@ -4711,7 +4808,7 @@
       for (var prop in puzzle.solution) {
         
         if (utility.compareObj(puzzle.solution[prop], position)) {
-          return prop;
+          return parseInt(prop);
         }
       }
     };
@@ -4724,10 +4821,17 @@
       return utility.compareObj(puzzle.position(), puzzle.solution);
     };
 
+    var check = function() {
+      if (puzzle.isCorrect()) {
+        alert("You won!");
+      }
+    }
+
 
     puzzle.getID = getID;
     puzzle.getPosition = getPosition;
     puzzle.isCorrect = isCorrect;
+    puzzle.check = check;
 
     return puzzle;
 
@@ -4743,6 +4847,11 @@
     "use strict";
 
     $cache(document).ready(function() {
+
+      $cache(".puzzle").on("click", ".puzzle__piece", function(){
+        var piece = $(this);
+        puzzle.slide(piece);
+      });
 
     });
 

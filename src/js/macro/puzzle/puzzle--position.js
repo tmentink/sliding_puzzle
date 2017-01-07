@@ -19,7 +19,16 @@
       return posObj;
     };
 
+
+    var setOpenTile = function(id) {
+      puzzle.openTile = $cache("[data-id='" + id + "']").position();
+
+      $cache("[data-id='" + id + "']").velocity(puzzle.solution[8]);
+    };
+
+
     puzzle.position = getAllPositions;
+    puzzle.setOpenTile = setOpenTile;
 
     return puzzle;
 

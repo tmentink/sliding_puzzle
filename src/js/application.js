@@ -4445,23 +4445,37 @@
  will produce an inaccurate conversion value. The same issue exists with the cx/cy attributes of SVG circles and ellipses. */
 
 // ===========================================
+// Breakpoints
+// ===========================================
+
+  var page = (function(page) {
+    "use strict";
+
+    page.breakpoints = {
+      mobile: window.matchMedia("(max-width: 767px)"),
+      tablet: window.matchMedia("(min-width: 768px)")
+    };
+
+    return page;
+  })(page || {});
+
+
+
+// ===========================================
 // Config
 // ===========================================
 
   var puzzle = (function(puzzle) {
     "use strict";
 
-    // Config Object
-    // =======================================
     puzzle.config = {
       rowSize: 3,
+      puzzleSize: 300,
       mobileSize: 300,
-      tabletSize: 600
+      tabletSize: 450
     };
 
-
     return puzzle;
-
   })(puzzle || {});
 
 
@@ -4599,6 +4613,7 @@
       puzzle.isAnimating = true;
       puzzle.moves = 0;
       puzzle.setScore();
+      puzzle.setGrid();
 
       var delay = 250;
       if (!puzzle.isReady) {
@@ -4657,19 +4672,77 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
-    puzzle.grid = {
-      0: {top: 0,   left: 0},
-      1: {top: 0,   left: 100},
-      2: {top: 0,   left: 200},
-      3: {top: 100, left: 0},
-      4: {top: 100, left: 100},
-      5: {top: 100, left: 200},
-      6: {top: 200, left: 0},
-      7: {top: 200, left: 100},
-      8: {top: 200, left: 200}
+
+    // Setup
+    // =======================================
+    var setGrid = function() {
+      var grid = {};
+      var tileCount = getTileCount();
+
+      for (var i = 0, i_end = tileCount; i < i_end; i++) {
+        var position = getGridPosition(i);
+        grid[i] = position;
+      }
+
+      puzzle.grid = grid;
+    };
+
+    var getGridPosition = function(i) {
+      return {
+        top: getTopPosition(i),
+        left: getLeftPosition(i)
+      };
+    };
+
+    var getTopPosition = function(i) {
+      switch(i) {
+        case 0:
+        case 1:
+        case 2:
+          return 0;
+
+        case 3:
+        case 4:
+        case 5:
+          return 1 * getTileSize();
+
+        case 6:
+        case 7:
+        case 8:
+          return 2 * getTileSize();
+      }
+    };
+
+    var getLeftPosition = function(i) {
+      switch(i) {
+        case 0:
+        case 3:
+        case 6:
+          return 0;
+
+        case 1:
+        case 4:
+        case 7:
+          return 1 * getTileSize();
+
+        case 2:
+        case 5:
+        case 8: 
+          return 2 * getTileSize();
+      }
+    };
+
+    var getTileSize = function() {
+      return (puzzle.config.puzzleSize / puzzle.config.rowSize);
+    };
+
+    var getTileCount = function() {
+      return puzzle.config.rowSize * puzzle.config.rowSize;
     };
 
 
+    // Adjacent
+    // =======================================
     var getIDByPosition = function(position) {
       for (var prop in puzzle.grid) {
         
@@ -4723,7 +4796,8 @@
     // Public Methods
     // =======================================
     puzzle.isAdjacent = isAdjacent;
-    
+    puzzle.setGrid = setGrid;
+
 
     return puzzle;
   })(puzzle || {});
@@ -4872,10 +4946,47 @@
     "use strict";
 
     $cache(document).ready(function() {
+      generalInit();
 
+      if (page.breakpoints.mobile.matches) {
+        mobileInit();
+      }
+      else if (page.breakpoints.tablet.matches) {
+        tabletInit();
+      }
+
+      // breakpoint listeners
+      page.breakpoints.mobile.addListener(function(e){
+        if (e.matches) {
+          mobileInit();
+          puzzle.newGame();
+        }
+      });
+
+      page.breakpoints.tablet.addListener(function(e){
+        if (e.matches) {
+          tabletInit();
+          puzzle.newGame();
+        }
+      });
+    });
+
+
+    // General Init
+    // ========================================
+    var generalInit = function() {
       $cache("#btnNewGame").on("click", function(){
         puzzle.newGame();
       });
+
+      $cache(".puzzle").on("touchstart", ".puzzle__tile", function(e){
+        e.preventDefault();
+
+        if (puzzle.isReady) {
+          var id = $(this).attr("data-id");
+          puzzle.slide(id);
+        }
+      })
 
       $cache(".puzzle").on("click", ".puzzle__tile", function(){
         if (puzzle.isReady) {
@@ -4883,7 +4994,29 @@
           puzzle.slide(id);
         }
       });
-    });
+    };
+
+
+    // Mobile Init
+    // ========================================
+    var mobileInit = function() {
+      $cache(".puzzle")
+        .removeClass("puzzle--tablet")
+        .addClass("puzzle--mobile");
+
+      puzzle.config.puzzleSize = puzzle.config.mobileSize;
+    };
+
+
+    // Tablet Init
+    // ========================================
+    var tabletInit = function() {
+      $cache(".puzzle")
+        .removeClass("puzzle--mobile")
+        .addClass("puzzle--tablet");
+
+      puzzle.config.puzzleSize = puzzle.config.tabletSize;
+    };
 
   })(puzzle);
 

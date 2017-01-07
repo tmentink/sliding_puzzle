@@ -6,19 +6,77 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
-    puzzle.grid = {
-      0: {top: 0,   left: 0},
-      1: {top: 0,   left: 100},
-      2: {top: 0,   left: 200},
-      3: {top: 100, left: 0},
-      4: {top: 100, left: 100},
-      5: {top: 100, left: 200},
-      6: {top: 200, left: 0},
-      7: {top: 200, left: 100},
-      8: {top: 200, left: 200}
+
+    // Setup
+    // =======================================
+    var setGrid = function() {
+      var grid = {};
+      var tileCount = getTileCount();
+
+      for (var i = 0, i_end = tileCount; i < i_end; i++) {
+        var position = getGridPosition(i);
+        grid[i] = position;
+      }
+
+      puzzle.grid = grid;
+    };
+
+    var getGridPosition = function(i) {
+      return {
+        top: getTopPosition(i),
+        left: getLeftPosition(i)
+      };
+    };
+
+    var getTopPosition = function(i) {
+      switch(i) {
+        case 0:
+        case 1:
+        case 2:
+          return 0;
+
+        case 3:
+        case 4:
+        case 5:
+          return 1 * getTileSize();
+
+        case 6:
+        case 7:
+        case 8:
+          return 2 * getTileSize();
+      }
+    };
+
+    var getLeftPosition = function(i) {
+      switch(i) {
+        case 0:
+        case 3:
+        case 6:
+          return 0;
+
+        case 1:
+        case 4:
+        case 7:
+          return 1 * getTileSize();
+
+        case 2:
+        case 5:
+        case 8: 
+          return 2 * getTileSize();
+      }
+    };
+
+    var getTileSize = function() {
+      return (puzzle.config.puzzleSize / puzzle.config.rowSize);
+    };
+
+    var getTileCount = function() {
+      return puzzle.config.rowSize * puzzle.config.rowSize;
     };
 
 
+    // Adjacent
+    // =======================================
     var getIDByPosition = function(position) {
       for (var prop in puzzle.grid) {
         
@@ -72,7 +130,8 @@
     // Public Methods
     // =======================================
     puzzle.isAdjacent = isAdjacent;
-    
+    puzzle.setGrid = setGrid;
+
 
     return puzzle;
   })(puzzle || {});

@@ -6,16 +6,13 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
-    // Config Object
-    // =======================================
     puzzle.config = {
       rowSize: 3,
+      puzzleSize: 300,
       mobileSize: 300,
-      tabletSize: 600
+      tabletSize: 450
     };
 
-
     return puzzle;
-
   })(puzzle || {});
 

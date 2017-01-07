@@ -14,6 +14,7 @@
       puzzle.isAnimating = true;
       puzzle.moves = 0;
       puzzle.setScore();
+      puzzle.setGrid();
 
       var delay = 250;
       if (!puzzle.isReady) {

@@ -11,16 +11,11 @@
     cursor: pointer;
     text-align: center;   
     white-space: nowrap;
-    @include no-select;
   }
 
 
 // Font
 // ===========================================
-  .button {
-    font-size: rem(20px);
-  }
-
   .button--text {
     font-weight: bold;
     text-decoration: none;

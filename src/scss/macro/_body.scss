@@ -23,10 +23,10 @@
 		display: none;
 	}
 
-	// default to center alignment
 	html,
 	body {
 		text-align: center;
+    @include no-select;
 	}
 
 

@@ -526,14 +526,6 @@ html {
   cursor: pointer;
   text-align: center;
   white-space: nowrap;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-.button {
-  font-size: 1.25rem;
 }
 
 .button--text {
@@ -598,6 +590,10 @@ html {
 html,
 body {
   text-align: center;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 html,
@@ -619,13 +615,13 @@ body {
 
 @media all and (min-width: 43.75em) {
   #header {
-    margin-top: 3.125rem;
+    margin-top: 1.875rem;
   }
 }
 
 @media all and (min-width: 64.0625em) {
   #header {
-    margin-top: 1.5625rem;
+    margin-top: 0.9375rem;
   }
 }
 
@@ -658,6 +654,7 @@ body {
   border-left: solid 0.125rem transparent;
   position: absolute;
   background-image: url(../img/puzzle.jpg);
+  cursor: pointer;
   z-index: 1;
 }
 
@@ -753,6 +750,71 @@ body {
   background-position: -200px -200px;
   top: 200px;
   left: 200px;
+}
+
+.puzzle--tablet {
+  height: 28.125rem;
+  width: 28.125rem;
+}
+
+.puzzle--tablet .puzzle__tile {
+  height: 9.375rem;
+  width: 9.375rem;
+  background-size: 450px 450px;
+}
+
+.puzzle--tablet .puzzle__tile[data-id='0'] {
+  background-position: 0 0;
+  top: 0;
+  left: 0;
+}
+
+.puzzle--tablet .puzzle__tile[data-id='1'] {
+  background-position: -150px 0px;
+  top: 0;
+  left: 150px;
+}
+
+.puzzle--tablet .puzzle__tile[data-id='2'] {
+  background-position: -300px 0px;
+  top: 0;
+  left: 300px;
+}
+
+.puzzle--tablet .puzzle__tile[data-id='3'] {
+  background-position: 0px -150px;
+  top: 150px;
+  left: 0px;
+}
+
+.puzzle--tablet .puzzle__tile[data-id='4'] {
+  background-position: -150px -150px;
+  top: 150px;
+  left: 150px;
+}
+
+.puzzle--tablet .puzzle__tile[data-id='5'] {
+  background-position: -300px -150px;
+  top: 150px;
+  left: 300px;
+}
+
+.puzzle--tablet .puzzle__tile[data-id='6'] {
+  background-position: 0px -300px;
+  top: 300px;
+  left: 0px;
+}
+
+.puzzle--tablet .puzzle__tile[data-id='7'] {
+  background-position: -150px -300px;
+  top: 300px;
+  left: 150px;
+}
+
+.puzzle--tablet .puzzle__tile[data-id='8'] {
+  background-position: -300px -300px;
+  top: 300px;
+  left: 300px;
 }
 
 #footer {

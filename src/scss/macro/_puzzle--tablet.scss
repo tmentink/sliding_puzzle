@@ -4,5 +4,80 @@
 // ===========================================
 
 
+// Size
+// ===========================================  
+  .puzzle--tablet {
+    height: rem(450px);
+    width: rem(450px);
+
+
+    .puzzle__tile {
+      height: rem(150px);
+      width: rem(150px);
+      background-size: 450px 450px;
+
+
+      &[data-id='0'] {
+        background-position: 0 0;
+        top: 0;
+        left: 0;
+      }
+
+      &[data-id='1'] {
+        background-position: -150px 0px;
+        top: 0;
+        left: 150px;
+      }
+
+      &[data-id='2'] {
+        background-position: -300px 0px;
+        top: 0;
+        left: 300px;
+      }
+
+      &[data-id='3'] {
+        background-position: 0px -150px;
+        top: 150px;
+        left: 0px;
+      }
+
+      &[data-id='4'] {
+        background-position: -150px -150px;
+        top: 150px;
+        left: 150px;
+      }
+
+      &[data-id='5'] {
+        background-position: -300px -150px;
+        top: 150px;
+        left: 300px;
+      }
+
+      &[data-id='6'] {
+        background-position: 0px -300px;
+        top: 300px;
+        left: 0px;
+      }
+
+      &[data-id='7'] {
+        background-position: -150px -300px;
+        top: 300px;
+        left: 150px;
+      }
+
+      &[data-id='8'] {
+        background-position: -300px -300px;
+        top: 300px;
+        left: 300px;
+      }
+    }
+  }
+
+
+// ===========================================
+// Puzzle - Tablet
+// ===========================================
+
+
 
 

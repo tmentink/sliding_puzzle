@@ -18,7 +18,9 @@
     border-bottom: solid rem(2px) transparent;
     border-left: solid rem(2px) transparent;
     position: absolute;
+
     background-image: url(../img/puzzle.jpg);
+    z-index: 1;
   }
 
   
@@ -31,6 +33,7 @@
 
   .puzzle__tile--hidden {
     opacity: 0;
+    z-index: 0;
   }
 
   .puzzle--tiled {

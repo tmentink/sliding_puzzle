@@ -11,8 +11,10 @@
         return false;
       }
 
-      if (puzzle.debug || puzzle.isAdjacent(id)) {
-        var tile = $cache("[data-id='" + id + "']");
+      if (puzzle.debug || 
+          puzzle.isAdjacent(id)) {
+        
+        var tile = puzzle.utility.getTile(id);
         var options = getOptions(id);
 
         tile.velocity(puzzle.openPosition, options);
@@ -25,7 +27,7 @@
         begin: function() {
           puzzle.isAnimating = true;
           puzzle.moves ++;
-          puzzle.setOpenPosition(id);
+          puzzle.utility.setOpenPosition(id);
         },
         complete: function() {
           puzzle.isAnimating = false;

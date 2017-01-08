@@ -18,7 +18,7 @@
 
       var delay = 250;
       if (!puzzle.isReady) {
-        start();
+        puzzle.start();
         delay = 1000;
       }
 
@@ -27,29 +27,14 @@
       }, delay);
     };
 
-    var start = function() {
-      puzzle.isReady = true;
-      $cache(".puzzle").addClass("puzzle--tiled");
-      $cache("[data-id='8']").addClass("puzzle__tile--hidden");
-    };
-
-    var done = function() {
-      puzzle.isReady = false;
-      $cache(".puzzle").removeClass("puzzle--tiled");
-      $cache("[data-id='8']").removeClass("puzzle__tile--hidden");
-    };
 
     var setScore = function() {
       $cache(".moves").html(puzzle.moves);
     };
 
-    var isCorrect = function() {
-      return utility.compareObjects(puzzle.getAllPositions(), puzzle.grid);
-    }
-
     var check = function() {
-      if (isCorrect()) {
-        done();
+      if (puzzle.utility.isCorrect()) {
+        puzzle.stop();
       }
     };
 

@@ -10,15 +10,12 @@
     // Setup
     // =======================================
     var setGrid = function() {
-      var grid = {};
-      var tileCount = getTileCount();
+      puzzle.grid = {};
+      var tileCount = puzzle.utility.getTileCount();
 
       for (var i = 0, i_end = tileCount; i < i_end; i++) {
-        var position = getGridPosition(i);
-        grid[i] = position;
+        puzzle.grid[i] = getGridPosition(i);
       }
-
-      puzzle.grid = grid;
     };
 
     var getGridPosition = function(i) {
@@ -38,12 +35,12 @@
         case 3:
         case 4:
         case 5:
-          return 1 * getTileSize();
+          return 1 * puzzle.utility.getTileSize();
 
         case 6:
         case 7:
         case 8:
-          return 2 * getTileSize();
+          return 2 * puzzle.utility.getTileSize();
       }
     };
 
@@ -57,21 +54,13 @@
         case 1:
         case 4:
         case 7:
-          return 1 * getTileSize();
+          return 1 * puzzle.utility.getTileSize();
 
         case 2:
         case 5:
         case 8: 
-          return 2 * getTileSize();
+          return 2 * puzzle.utility.getTileSize();
       }
-    };
-
-    var getTileSize = function() {
-      return (puzzle.config.puzzleSize / puzzle.config.rowSize);
-    };
-
-    var getTileCount = function() {
-      return puzzle.config.rowSize * puzzle.config.rowSize;
     };
 
 
@@ -87,7 +76,7 @@
     };
 
     var isAdjacent = function(id) {
-      var tilePosition = puzzle.getTilePosition(id);
+      var tilePosition = puzzle.utility.getTilePosition(id);
       var gridID = getIDByPosition(tilePosition);
       var adjacentIDs = getAdjacentIDs(gridID);
       var openID = getIDByPosition(puzzle.openPosition);
@@ -131,7 +120,7 @@
     // =======================================
     puzzle.isAdjacent = isAdjacent;
     puzzle.setGrid = setGrid;
-
+    
 
     return puzzle;
   })(puzzle || {});

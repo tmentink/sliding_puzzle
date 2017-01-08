@@ -19,6 +19,8 @@
         desktopInit();
       }
 
+      puzzle.setGrid();
+
       // breakpoint listeners
       page.breakpoints.mobile.addListener(function(e){
         if (e.matches) {
@@ -46,9 +48,27 @@
     // General Init
     // ========================================
     var generalInit = function() {
-      $cache("#btnNewGame").on("click", function(){
+      puzzle.imageID = 0;
+
+      $cache("#btnStart").on("click", function(){
         puzzle.newGame();
       });
+
+      $cache("#btnChange").on("click", function(){
+        puzzle.change();
+      });
+
+
+      $cache(".puzzle__arrow--right").on("click", function(){
+        console.log("right")
+        puzzle.nextImage();
+      });
+
+      $cache(".puzzle__arrow--left").on("click", function(){
+        console.log("left")
+        puzzle.lastImage();
+      });
+
 
       $cache(".puzzle").on("touchstart", ".puzzle__tile", function(e){
         e.preventDefault();

@@ -7,11 +7,11 @@
     "use strict";
 
     var shuffle = function() {
-      var ids = [0,1,2,3,4,5,6,7,8];
+      var ids = puzzle.utility.getIDs();
       var order = utility.shuffleArray(ids);
 
-      for (var i = 0, i_end = 9; i < i_end; i++) {
-        var tile = $cache("[data-id='" + i + "']");
+      for (var i = 0, i_end = order.length; i < i_end; i++) {
+        var tile = puzzle.utility.getTile(i);
         var position = puzzle.grid[order[i]];
         var options = getOptions(i);
         
@@ -21,12 +21,14 @@
 
     var getOptions = function(i) {
       var options = {duration: 1250};
+      var lastID = puzzle.utility.getLastID();
 
-      if (i == 8) {
+      if (i == lastID) {
+        var position = puzzle.grid[lastID];
+
         options.complete = function() {
-          puzzle.setOpenPosition(8);
-          var position = puzzle.grid[8];
-          $cache("[data-id='8']").velocity(position);
+          puzzle.utility.setOpenPosition(lastID);
+          puzzle.utility.getTile(lastID).velocity(position);
           puzzle.isAnimating = false;
         };
       }
@@ -35,9 +37,22 @@
     };
 
 
+    var reset = function() {
+      var tileCount = puzzle.utility.getTileCount();
+
+      for (var i = 0, i_end = tileCount; i < i_end; i++) {
+        var tile = puzzle.utility.getTile(i);
+        var position = puzzle.grid[i];      
+        
+        tile.velocity(position, {duration: 500});
+      } 
+    };
+
+
     // Public Methods
     // =======================================
     puzzle.shuffle = shuffle;
+    puzzle.reset = reset;
     
 
     return puzzle;

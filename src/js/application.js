@@ -4474,7 +4474,8 @@
       puzzleSize: 300,
       mobileSize: 300,
       tabletSize: 450,
-      desktopSize: 600
+      desktopSize: 600,
+      imageIDs: [0,1,2,3,4,5,6,7,8,9,10,11,12]
     };
 
     return puzzle;
@@ -4619,7 +4620,7 @@
 
       var delay = 250;
       if (!puzzle.isReady) {
-        start();
+        puzzle.start();
         delay = 1000;
       }
 
@@ -4628,29 +4629,14 @@
       }, delay);
     };
 
-    var start = function() {
-      puzzle.isReady = true;
-      $cache(".puzzle").addClass("puzzle--tiled");
-      $cache("[data-id='8']").addClass("puzzle__tile--hidden");
-    };
-
-    var done = function() {
-      puzzle.isReady = false;
-      $cache(".puzzle").removeClass("puzzle--tiled");
-      $cache("[data-id='8']").removeClass("puzzle__tile--hidden");
-    };
 
     var setScore = function() {
       $cache(".moves").html(puzzle.moves);
     };
 
-    var isCorrect = function() {
-      return utility.compareObjects(puzzle.getAllPositions(), puzzle.grid);
-    }
-
     var check = function() {
-      if (isCorrect()) {
-        done();
+      if (puzzle.utility.isCorrect()) {
+        puzzle.stop();
       }
     };
 
@@ -4678,15 +4664,12 @@
     // Setup
     // =======================================
     var setGrid = function() {
-      var grid = {};
-      var tileCount = getTileCount();
+      puzzle.grid = {};
+      var tileCount = puzzle.utility.getTileCount();
 
       for (var i = 0, i_end = tileCount; i < i_end; i++) {
-        var position = getGridPosition(i);
-        grid[i] = position;
+        puzzle.grid[i] = getGridPosition(i);
       }
-
-      puzzle.grid = grid;
     };
 
     var getGridPosition = function(i) {
@@ -4706,12 +4689,12 @@
         case 3:
         case 4:
         case 5:
-          return 1 * getTileSize();
+          return 1 * puzzle.utility.getTileSize();
 
         case 6:
         case 7:
         case 8:
-          return 2 * getTileSize();
+          return 2 * puzzle.utility.getTileSize();
       }
     };
 
@@ -4725,21 +4708,13 @@
         case 1:
         case 4:
         case 7:
-          return 1 * getTileSize();
+          return 1 * puzzle.utility.getTileSize();
 
         case 2:
         case 5:
         case 8: 
-          return 2 * getTileSize();
+          return 2 * puzzle.utility.getTileSize();
       }
-    };
-
-    var getTileSize = function() {
-      return (puzzle.config.puzzleSize / puzzle.config.rowSize);
-    };
-
-    var getTileCount = function() {
-      return puzzle.config.rowSize * puzzle.config.rowSize;
     };
 
 
@@ -4755,7 +4730,7 @@
     };
 
     var isAdjacent = function(id) {
-      var tilePosition = puzzle.getTilePosition(id);
+      var tilePosition = puzzle.utility.getTilePosition(id);
       var gridID = getIDByPosition(tilePosition);
       var adjacentIDs = getAdjacentIDs(gridID);
       var openID = getIDByPosition(puzzle.openPosition);
@@ -4799,7 +4774,7 @@
     // =======================================
     puzzle.isAdjacent = isAdjacent;
     puzzle.setGrid = setGrid;
-
+    
 
     return puzzle;
   })(puzzle || {});
@@ -4807,39 +4782,42 @@
 
 
 // ===========================================
-// Puzzle - Position
+// Puzzle - Image
 // ===========================================
 
   var puzzle = (function(puzzle) {
     "use strict";
 
-    var getAllPositions = function() {
-      var posObj = {};
-
-      $cache(".puzzle__tile").each(function(){
-        var tile = $(this);
-        var id = tile.attr("data-id");
-
-        posObj[id] = tile.position();
-      });
-
-      return posObj;
+    var setImage = function() {
+      $cache(".puzzle__tile").css({"backgroundImage": "url(img/" + puzzle.imageID + ".jpg)"});
     };
 
-    var getTilePosition = function(id) {
-      return $cache("[data-id='" + id + "']").position();
-    }
+    var nextImage = function() {
+      if (puzzle.imageID == puzzle.utility.getLastImageID()) {
+        puzzle.imageID = 0;
+      }
+      else {
+        puzzle.imageID++;
+      }
 
-    var setOpenPosition = function(id) {
-      puzzle.openPosition = $cache("[data-id='" + id + "']").position();
+      setImage();
     };
 
+    var lastImage = function() {
+      if (puzzle.imageID == 0) {
+        puzzle.imageID = puzzle.utility.getLastImageID();
+      }
+      else {
+        puzzle.imageID--;
+      }
+
+      setImage();
+    };
 
     // Public Methods
     // =======================================
-    puzzle.getAllPositions = getAllPositions;
-    puzzle.getTilePosition = getTilePosition;
-    puzzle.setOpenPosition = setOpenPosition;
+    puzzle.nextImage = nextImage;
+    puzzle.lastImage = lastImage;
 
 
     return puzzle;
@@ -4855,11 +4833,11 @@
     "use strict";
 
     var shuffle = function() {
-      var ids = [0,1,2,3,4,5,6,7,8];
+      var ids = puzzle.utility.getIDs();
       var order = utility.shuffleArray(ids);
 
-      for (var i = 0, i_end = 9; i < i_end; i++) {
-        var tile = $cache("[data-id='" + i + "']");
+      for (var i = 0, i_end = order.length; i < i_end; i++) {
+        var tile = puzzle.utility.getTile(i);
         var position = puzzle.grid[order[i]];
         var options = getOptions(i);
         
@@ -4869,12 +4847,14 @@
 
     var getOptions = function(i) {
       var options = {duration: 1250};
+      var lastID = puzzle.utility.getLastID();
 
-      if (i == 8) {
+      if (i == lastID) {
+        var position = puzzle.grid[lastID];
+
         options.complete = function() {
-          puzzle.setOpenPosition(8);
-          var position = puzzle.grid[8];
-          $cache("[data-id='8']").velocity(position);
+          puzzle.utility.setOpenPosition(lastID);
+          puzzle.utility.getTile(lastID).velocity(position);
           puzzle.isAnimating = false;
         };
       }
@@ -4883,9 +4863,22 @@
     };
 
 
+    var reset = function() {
+      var tileCount = puzzle.utility.getTileCount();
+
+      for (var i = 0, i_end = tileCount; i < i_end; i++) {
+        var tile = puzzle.utility.getTile(i);
+        var position = puzzle.grid[i];      
+        
+        tile.velocity(position, {duration: 500});
+      } 
+    };
+
+
     // Public Methods
     // =======================================
     puzzle.shuffle = shuffle;
+    puzzle.reset = reset;
     
 
     return puzzle;
@@ -4905,8 +4898,10 @@
         return false;
       }
 
-      if (puzzle.debug || puzzle.isAdjacent(id)) {
-        var tile = $cache("[data-id='" + id + "']");
+      if (puzzle.debug || 
+          puzzle.isAdjacent(id)) {
+        
+        var tile = puzzle.utility.getTile(id);
         var options = getOptions(id);
 
         tile.velocity(puzzle.openPosition, options);
@@ -4919,7 +4914,7 @@
         begin: function() {
           puzzle.isAnimating = true;
           puzzle.moves ++;
-          puzzle.setOpenPosition(id);
+          puzzle.utility.setOpenPosition(id);
         },
         complete: function() {
           puzzle.isAnimating = false;
@@ -4934,6 +4929,152 @@
     // =======================================
     puzzle.slide = slide;
     
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - States
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    var start = function() {
+      puzzle.isReady = true;
+      $cache(".puzzle")
+        .addClass("puzzle--tiled")
+        .removeClass("puzzle--change");
+
+      puzzle.utility.getLastTile()
+        .addClass("puzzle__tile--hidden");
+    };
+
+    var stop = function() {
+      puzzle.isReady = false;
+      $cache(".puzzle")
+        .removeClass("puzzle--tiled puzzle--change");
+
+      puzzle.utility.getLastTile()
+        .removeClass("puzzle__tile--hidden");
+    };
+
+    var change = function() {
+      puzzle.stop();
+      puzzle.reset();
+      $cache(".puzzle").addClass("puzzle--change");
+    };
+
+
+    // Public Methods
+    // =======================================
+    puzzle.start = start;
+    puzzle.stop = stop;
+    puzzle.change = change;
+
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - Utility
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    var getTileSize = function() {
+      return (puzzle.config.puzzleSize / puzzle.config.rowSize);
+    };
+
+    var getTileCount = function() {
+      return puzzle.config.rowSize * puzzle.config.rowSize;
+    };
+
+    var isCorrect = function() {
+      return utility.compareObjects(getAllPositions(), puzzle.grid);
+    };
+
+
+    // ID Functions
+    // =======================================
+    var getIDs = function() {
+      var ids = [];
+      var tileCount = getTileCount();
+
+      for (var i = 0, i_end = tileCount; i < i_end; i++) {
+        ids.push(i);
+      }
+
+      return ids;
+    };
+
+    var getLastID = function() {
+      return getTileCount() - 1;
+    };
+
+    var getLastImageID = function() {
+      return puzzle.config.imageIDs.length - 1;
+    };
+
+
+    // Selector Functions
+    // =======================================
+    var getTile = function(id) {
+      return $cache("[data-id='" + id + "']");
+    };
+
+    var getLastTile = function() {
+      var id = getLastID();
+      return getTile(id);
+    };
+
+
+    // Position Functions
+    // =======================================
+    var getAllPositions = function() {
+      var posObj = {};
+      var ids = getIDs();
+
+      for (var i = 0, i_end = ids.length; i < i_end; i++) {
+        var id = ids[i];
+        var position = getTilePosition(id);
+
+        posObj[id] = position;
+      }
+
+      return posObj;
+    };
+
+    var getTilePosition = function(id) {
+      return getTile(id).position();
+    };
+
+    var setOpenPosition = function(id) {
+      puzzle.openPosition = getTilePosition(id);
+    };
+
+
+    // Public Methods
+    // =======================================
+    puzzle.utility = {
+      getIDs          : getIDs,
+      getTile         : getTile,
+      isCorrect       : isCorrect,
+      getLastID       : getLastID,
+      getLastTile     : getLastTile,
+      getTileSize     : getTileSize,
+      getTileCount    : getTileCount,
+      getLastImageID  : getLastImageID,
+      getAllPositions : getAllPositions,
+      getTilePosition : getTilePosition,
+      setOpenPosition : setOpenPosition
+    };
+
 
     return puzzle;
   })(puzzle || {});
@@ -4959,6 +5100,8 @@
       else if (page.breakpoints.desktop.matches) {
         desktopInit();
       }
+
+      puzzle.setGrid();
 
       // breakpoint listeners
       page.breakpoints.mobile.addListener(function(e){
@@ -4987,9 +5130,27 @@
     // General Init
     // ========================================
     var generalInit = function() {
-      $cache("#btnNewGame").on("click", function(){
+      puzzle.imageID = 0;
+
+      $cache("#btnStart").on("click", function(){
         puzzle.newGame();
       });
+
+      $cache("#btnChange").on("click", function(){
+        puzzle.change();
+      });
+
+
+      $cache(".puzzle__arrow--right").on("click", function(){
+        console.log("right")
+        puzzle.nextImage();
+      });
+
+      $cache(".puzzle__arrow--left").on("click", function(){
+        console.log("left")
+        puzzle.lastImage();
+      });
+
 
       $cache(".puzzle").on("touchstart", ".puzzle__tile", function(e){
         e.preventDefault();

@@ -633,12 +633,18 @@ body {
   margin-right: 0.46875rem;
 }
 
+.button {
+  margin: 0 0.78125rem;
+}
+
 #scoreboard {
   font-size: 1.125rem;
 }
 
-#btnNewGame {
-  font-size: 1.625rem;
+#btnStart,
+#btnSolve,
+#btnChange {
+  font-size: 1.25rem;
 }
 
 .puzzle {
@@ -653,7 +659,7 @@ body {
   border-bottom: solid 0.125rem transparent;
   border-left: solid 0.125rem transparent;
   position: absolute;
-  background-image: url(../img/puzzle.jpg);
+  background-image: url(../img/0.jpg);
   cursor: pointer;
   z-index: 1;
 }
@@ -880,6 +886,51 @@ body {
   background-position: -400px -400px;
   top: 400px;
   left: 400px;
+}
+
+.puzzle__arrow {
+  padding: 0.625rem;
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+
+.puzzle__arrow--left {
+  left: 0;
+}
+
+.puzzle__arrow--right {
+  right: 0;
+}
+
+.puzzle__arrow {
+  opacity: 0;
+  z-index: -1;
+  -webkit-transition-property: opacity;
+  transition-property: opacity;
+  -webkit-transition-duration: 0.5s;
+  transition-duration: 0.5s;
+  -webkit-transition-timing-function: ease-in;
+  transition-timing-function: ease-in;
+  -webkit-transition-delay: 0;
+  transition-delay: 0;
+}
+
+.puzzle--change .puzzle__arrow {
+  opacity: 1;
+  z-index: 10;
+}
+
+.puzzle__arrow {
+  font-size: 2.5rem;
+}
+
+.puzzle__arrow {
+  background: rgba(26, 26, 26, 0.7);
+  color: #FFFFFF;
 }
 
 #footer {

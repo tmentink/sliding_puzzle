@@ -26,6 +26,10 @@
     margin-right: rem(7.5px);
   }
 
+  .button {
+    margin: 0 rem(12.5px);
+  }
+
 
 // Font
 // ===========================================
@@ -33,7 +37,9 @@
     font-size: rem(18px);
   }
 
-  #btnNewGame {
-    font-size:  rem(26px);
+  #btnStart,
+  #btnSolve,
+  #btnChange {
+    font-size:  rem(20px);
   }
 

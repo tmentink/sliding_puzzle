@@ -59,13 +59,21 @@
       });
 
 
-      $cache(".puzzle__arrow--right").on("click", function(){
-        console.log("right")
+      $cache(".puzzle__arrow--right").on("touchstart", function(e){
+        e.preventDefault();
         puzzle.nextImage();
       });
 
+      $cache(".puzzle__arrow--right").on("click", function(){
+        puzzle.nextImage();
+      });
+
+      $cache(".puzzle__arrow--left").on("touchstart", function(e){
+        e.preventDefault();
+        puzzle.lastImage();
+      });
+
       $cache(".puzzle__arrow--left").on("click", function(){
-        console.log("left")
         puzzle.lastImage();
       });
 
@@ -77,7 +85,7 @@
           var id = $(this).attr("data-id");
           puzzle.slide(id);
         }
-      })
+      });
 
       $cache(".puzzle").on("click", ".puzzle__tile", function(){
         if (puzzle.isReady) {

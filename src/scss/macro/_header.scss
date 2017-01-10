@@ -13,8 +13,8 @@
       margin-top: rem(30px);
     }
 
-    @include bp-min-width(1025px) {
-      margin-top: rem(15px);
+    @include bp-min-width(1400px) {
+      margin-top: rem(60px);
     }
   }
 

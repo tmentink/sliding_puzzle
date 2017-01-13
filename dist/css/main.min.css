@@ -589,11 +589,20 @@ html {
 
 html,
 body {
+  cursor: default;
   text-align: center;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+.container-fluid {
+  opacity: 0;
+}
+
+.container-fluid.loaded {
+  opacity: 1;
 }
 
 html,
@@ -621,7 +630,7 @@ body {
 
 @media all and (min-width: 87.5em) {
   #header {
-    margin-top: 3.75rem;
+    margin-top: 2.5rem;
   }
 }
 
@@ -693,201 +702,6 @@ body {
   box-shadow: 0 0 1.5625rem 0.3125rem #1A1A1A, inset 0 0 4.6875rem 1.25rem #272727;
 }
 
-.puzzle--mobile {
-  height: 18.75rem;
-  width: 18.75rem;
-}
-
-.puzzle--mobile .puzzle__tile {
-  height: 6.25rem;
-  width: 6.25rem;
-  background-size: 300px 300px;
-}
-
-.puzzle--mobile .puzzle__tile[data-id='0'] {
-  background-position: 0 0;
-  top: 0;
-  left: 0;
-}
-
-.puzzle--mobile .puzzle__tile[data-id='1'] {
-  background-position: -100px 0px;
-  top: 0;
-  left: 100px;
-}
-
-.puzzle--mobile .puzzle__tile[data-id='2'] {
-  background-position: -200px 0px;
-  top: 0;
-  left: 200px;
-}
-
-.puzzle--mobile .puzzle__tile[data-id='3'] {
-  background-position: 0px -100px;
-  top: 100px;
-  left: 0px;
-}
-
-.puzzle--mobile .puzzle__tile[data-id='4'] {
-  background-position: -100px -100px;
-  top: 100px;
-  left: 100px;
-}
-
-.puzzle--mobile .puzzle__tile[data-id='5'] {
-  background-position: -200px -100px;
-  top: 100px;
-  left: 200px;
-}
-
-.puzzle--mobile .puzzle__tile[data-id='6'] {
-  background-position: 0px -200px;
-  top: 200px;
-  left: 0px;
-}
-
-.puzzle--mobile .puzzle__tile[data-id='7'] {
-  background-position: -100px -200px;
-  top: 200px;
-  left: 100px;
-}
-
-.puzzle--mobile .puzzle__tile[data-id='8'] {
-  background-position: -200px -200px;
-  top: 200px;
-  left: 200px;
-}
-
-.puzzle--tablet {
-  height: 28.125rem;
-  width: 28.125rem;
-}
-
-.puzzle--tablet .puzzle__tile {
-  height: 9.375rem;
-  width: 9.375rem;
-  background-size: 450px 450px;
-}
-
-.puzzle--tablet .puzzle__tile[data-id='0'] {
-  background-position: 0 0;
-  top: 0;
-  left: 0;
-}
-
-.puzzle--tablet .puzzle__tile[data-id='1'] {
-  background-position: -150px 0px;
-  top: 0;
-  left: 150px;
-}
-
-.puzzle--tablet .puzzle__tile[data-id='2'] {
-  background-position: -300px 0px;
-  top: 0;
-  left: 300px;
-}
-
-.puzzle--tablet .puzzle__tile[data-id='3'] {
-  background-position: 0px -150px;
-  top: 150px;
-  left: 0px;
-}
-
-.puzzle--tablet .puzzle__tile[data-id='4'] {
-  background-position: -150px -150px;
-  top: 150px;
-  left: 150px;
-}
-
-.puzzle--tablet .puzzle__tile[data-id='5'] {
-  background-position: -300px -150px;
-  top: 150px;
-  left: 300px;
-}
-
-.puzzle--tablet .puzzle__tile[data-id='6'] {
-  background-position: 0px -300px;
-  top: 300px;
-  left: 0px;
-}
-
-.puzzle--tablet .puzzle__tile[data-id='7'] {
-  background-position: -150px -300px;
-  top: 300px;
-  left: 150px;
-}
-
-.puzzle--tablet .puzzle__tile[data-id='8'] {
-  background-position: -300px -300px;
-  top: 300px;
-  left: 300px;
-}
-
-.puzzle--desktop {
-  height: 37.5rem;
-  width: 37.5rem;
-}
-
-.puzzle--desktop .puzzle__tile {
-  height: 12.5rem;
-  width: 12.5rem;
-  background-size: 600px 600px;
-}
-
-.puzzle--desktop .puzzle__tile[data-id='0'] {
-  background-position: 0 0;
-  top: 0;
-  left: 0;
-}
-
-.puzzle--desktop .puzzle__tile[data-id='1'] {
-  background-position: -200px 0px;
-  top: 0;
-  left: 200px;
-}
-
-.puzzle--desktop .puzzle__tile[data-id='2'] {
-  background-position: -400px 0px;
-  top: 0;
-  left: 400px;
-}
-
-.puzzle--desktop .puzzle__tile[data-id='3'] {
-  background-position: 0px -200px;
-  top: 200px;
-  left: 0px;
-}
-
-.puzzle--desktop .puzzle__tile[data-id='4'] {
-  background-position: -200px -200px;
-  top: 200px;
-  left: 200px;
-}
-
-.puzzle--desktop .puzzle__tile[data-id='5'] {
-  background-position: -400px -200px;
-  top: 200px;
-  left: 400px;
-}
-
-.puzzle--desktop .puzzle__tile[data-id='6'] {
-  background-position: 0px -400px;
-  top: 400px;
-  left: 0px;
-}
-
-.puzzle--desktop .puzzle__tile[data-id='7'] {
-  background-position: -200px -400px;
-  top: 400px;
-  left: 200px;
-}
-
-.puzzle--desktop .puzzle__tile[data-id='8'] {
-  background-position: -400px -400px;
-  top: 400px;
-  left: 400px;
-}
-
 .puzzle__arrow {
   padding: 0.625rem;
   cursor: pointer;
@@ -933,8 +747,21 @@ body {
   color: #FFFFFF;
 }
 
+#options {
+  margin-top: 0.9375rem;
+}
+
+.radio {
+  margin: 0 0.46875rem;
+  cursor: pointer;
+}
+
+#options {
+  font-size: 1.125rem;
+}
+
 #footer {
-  margin-top: 1.25rem;
+  margin-top: 0.9375rem;
 }
 
 #footer {

@@ -1,19 +1,23 @@
 
 // ===========================================
-// Footer
+// Options
 // ===========================================
 
 
 // Structure
 // ===========================================  
-  #footer {
+  #options {
     margin-top: rem(15px);
   }
 
+  .radio {
+    margin: 0 rem(7.5px);
+    cursor: pointer;
+  }
 
 // Font
 // ===========================================
-  #footer {
+  #options {
     font-size: rem(18px);
   }
 

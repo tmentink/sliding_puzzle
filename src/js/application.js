@@ -4616,7 +4616,6 @@
       puzzle.isAnimating = true;
       puzzle.moves = 0;
       puzzle.setScore();
-      puzzle.setGrid();
 
       var delay = 250;
       if (!puzzle.isReady) {
@@ -4647,6 +4646,54 @@
     puzzle.setScore = setScore;
     puzzle.check = check;
 
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - CSS
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    var setCSS = function() {
+      setPuzzleSize();
+      setTileSize();
+      setTilePosition();
+      puzzle.setImage();
+    };
+
+    var setPuzzleSize = function() {
+      var size = puzzle.config.puzzleSize + "px";
+      $cache(".puzzle").css({"height": size, "width": size});
+    };
+
+    var setTileSize = function() {
+      var size = puzzle.utility.getTileSize() + "px";
+      var backgroundSize = puzzle.config.puzzleSize + "px";
+      $(".puzzle__tile").css({"height": size, "width": size, "backgroundSize": backgroundSize});
+    };
+
+    var setTilePosition = function() {
+      var gridPositions = puzzle.utility.getAllGridPositions();
+
+      for (var id in puzzle.grid) {
+        var tile = puzzle.utility.getTile(id);
+        var left = gridPositions[id].left;
+        var top  = gridPositions[id].top;
+        var backgroundPosition = "-" + left + "px -" + top + "px";
+
+        tile.css({"top": top, "left": left, "backgroundPosition": backgroundPosition});
+      }
+    }
+
+
+    // Public Methods
+    // =======================================
+    puzzle.setCSS = setCSS;
 
     return puzzle;
   })(puzzle || {});
@@ -4776,6 +4823,37 @@
 
 
 // ===========================================
+// Puzzle - HTML
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    var buildPuzzle = function() {
+      var HTML = "";
+
+      for (var id in puzzle.grid) {
+        HTML += buildTile(id);
+      }
+
+      $cache("#tiles").html(HTML);
+    };
+
+    var buildTile = function(id) {
+      return "<div data-id='" + id + "' class='puzzle__tile'></div>";
+    };
+
+
+    // Public Methods
+    // =======================================
+    puzzle.buildPuzzle = buildPuzzle;
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
 // Puzzle - Image
 // ===========================================
 
@@ -4783,7 +4861,7 @@
     "use strict";
 
     var setImage = function() {
-      $cache(".puzzle__tile").css({"backgroundImage": "url(img/" + puzzle.imageID + ".jpg)"});
+      $(".puzzle__tile").css({"backgroundImage": "url(img/" + puzzle.imageID + ".jpg)"});
     };
 
     var nextImage = function() {
@@ -4810,6 +4888,7 @@
 
     // Public Methods
     // =======================================
+    puzzle.setImage = setImage;
     puzzle.nextImage = nextImage;
     puzzle.lastImage = lastImage;
 
@@ -4873,6 +4952,39 @@
     puzzle.shuffle = shuffle;
     puzzle.reset = reset;
     
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - Options
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    var changeGridSize = function(size) {
+      if (size != puzzle.config.rowSize) {
+        toggleRadio();
+        puzzle.stop();
+        puzzle.reset();
+
+        setTimeout(function(){
+          puzzle.config.rowSize = size;
+          puzzle.setGrid();
+          puzzle.buildPuzzle();
+          puzzle.setCSS();
+        }, 600);
+      }
+    };
+
+    var toggleRadio = function() {
+      $cache(".fa", $cache("#options")).toggleClass("fa-circle fa-circle-o");
+    };
+
+    puzzle.changeGridSize = changeGridSize;
 
     return puzzle;
   })(puzzle || {});
@@ -5018,7 +5130,7 @@
     // Selector Functions
     // =======================================
     var getTile = function(id) {
-      return $cache("[data-id='" + id + "']");
+      return $("[data-id='" + id + "']");
     };
 
     var getLastTile = function() {
@@ -5089,8 +5201,6 @@
     "use strict";
 
     $cache(document).ready(function() {
-      generalInit();
-
       if (page.breakpoints.mobile.matches) {
         mobileInit();
       }
@@ -5101,12 +5211,14 @@
         desktopInit();
       }
 
-      puzzle.setGrid();
+      generalInit();
 
       // breakpoint listeners
       page.breakpoints.mobile.addListener(function(e){
         if (e.matches) {
           mobileInit();
+          puzzle.setGrid();
+          puzzle.setCSS();
           puzzle.newGame();
         }
       });
@@ -5114,6 +5226,8 @@
       page.breakpoints.tablet.addListener(function(e){
         if (e.matches) {
           tabletInit();
+          puzzle.setGrid();
+          puzzle.setCSS();
           puzzle.newGame();
         }
       });
@@ -5121,6 +5235,8 @@
       page.breakpoints.desktop.addListener(function(e){
         if (e.matches) {
           desktopInit();
+          puzzle.setGrid();
+          puzzle.setCSS();
           puzzle.newGame();
         }
       });
@@ -5131,6 +5247,10 @@
     // ========================================
     var generalInit = function() {
       puzzle.imageID = 0;
+      puzzle.setGrid();
+      puzzle.setCSS();
+
+      $cache(".container-fluid").addClass("loaded");
 
       $cache("#btnStart").on("click", function(){
         puzzle.newGame();
@@ -5141,21 +5261,34 @@
       });
 
 
-      $cache(".puzzle__arrow--right").on("touchstart", function(e){
+      $cache(".radio").on("touchstart", function(e){
+        e.preventDefault();
+
+        var size = $(this).attr("data-size");
+        puzzle.changeGridSize(size);
+      });
+
+      $cache(".radio").on("click", function(){
+        var size = $(this).attr("data-size");
+        puzzle.changeGridSize(size);
+      });
+
+
+      $cache(".puzzle").on("touchstart", ".puzzle__arrow--right", function(e){
         e.preventDefault();
         puzzle.nextImage();
       });
 
-      $cache(".puzzle__arrow--right").on("click", function(){
+      $cache(".puzzle").on("click", ".puzzle__arrow--right", function(){
         puzzle.nextImage();
       });
 
-      $cache(".puzzle__arrow--left").on("touchstart", function(e){
+      $cache(".puzzle").on("touchstart", ".puzzle__arrow--left", function(e){
         e.preventDefault();
         puzzle.lastImage();
       });
 
-      $cache(".puzzle__arrow--left").on("click", function(){
+      $cache(".puzzle").on("click", ".puzzle__arrow--left", function(){
         puzzle.lastImage();
       });
 
@@ -5181,10 +5314,6 @@
     // Mobile Init
     // ========================================
     var mobileInit = function() {
-      $cache(".puzzle")
-        .removeClass("puzzle--tablet puzzle--desktop")
-        .addClass("puzzle--mobile");
-
       puzzle.config.puzzleSize = puzzle.config.mobileSize;
     };
 
@@ -5192,10 +5321,6 @@
     // Tablet Init
     // ========================================
     var tabletInit = function() {
-      $cache(".puzzle")
-        .removeClass("puzzle--mobile puzzle--desktop")
-        .addClass("puzzle--tablet");
-
       puzzle.config.puzzleSize = puzzle.config.tabletSize;
     };
     
@@ -5203,10 +5328,6 @@
     // Desktop Init
     // ========================================
     var desktopInit = function() {
-      $cache(".puzzle")
-        .removeClass("puzzle--mobile puzzle--tablet")
-        .addClass("puzzle--desktop");
-
       puzzle.config.puzzleSize = puzzle.config.desktopSize;
     };
 

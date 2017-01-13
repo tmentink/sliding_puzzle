@@ -44,7 +44,7 @@
     // Selector Functions
     // =======================================
     var getTile = function(id) {
-      return $cache("[data-id='" + id + "']");
+      return $("[data-id='" + id + "']");
     };
 
     var getLastTile = function() {

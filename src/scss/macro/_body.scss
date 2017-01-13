@@ -25,9 +25,19 @@
 
 	html,
 	body {
+    cursor: default;
 		text-align: center;
     @include no-select;
 	}
+
+  // hide body till loaded
+  .container-fluid {
+    opacity: 0;
+    
+    &.loaded {
+      opacity: 1;
+    }
+  }
 
 
 // Font

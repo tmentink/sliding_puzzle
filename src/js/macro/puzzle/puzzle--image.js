@@ -7,7 +7,7 @@
     "use strict";
 
     var setImage = function() {
-      $cache(".puzzle__tile").css({"backgroundImage": "url(img/" + puzzle.imageID + ".jpg)"});
+      $(".puzzle__tile").css({"backgroundImage": "url(img/" + puzzle.imageID + ".jpg)"});
     };
 
     var nextImage = function() {
@@ -34,6 +34,7 @@
 
     // Public Methods
     // =======================================
+    puzzle.setImage = setImage;
     puzzle.nextImage = nextImage;
     puzzle.lastImage = lastImage;
 

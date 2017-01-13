@@ -7,8 +7,6 @@
     "use strict";
 
     $cache(document).ready(function() {
-      generalInit();
-
       if (page.breakpoints.mobile.matches) {
         mobileInit();
       }
@@ -19,12 +17,14 @@
         desktopInit();
       }
 
-      puzzle.setGrid();
+      generalInit();
 
       // breakpoint listeners
       page.breakpoints.mobile.addListener(function(e){
         if (e.matches) {
           mobileInit();
+          puzzle.setGrid();
+          puzzle.setCSS();
           puzzle.newGame();
         }
       });
@@ -32,6 +32,8 @@
       page.breakpoints.tablet.addListener(function(e){
         if (e.matches) {
           tabletInit();
+          puzzle.setGrid();
+          puzzle.setCSS();
           puzzle.newGame();
         }
       });
@@ -39,6 +41,8 @@
       page.breakpoints.desktop.addListener(function(e){
         if (e.matches) {
           desktopInit();
+          puzzle.setGrid();
+          puzzle.setCSS();
           puzzle.newGame();
         }
       });
@@ -49,6 +53,10 @@
     // ========================================
     var generalInit = function() {
       puzzle.imageID = 0;
+      puzzle.setGrid();
+      puzzle.setCSS();
+
+      $cache(".container-fluid").addClass("loaded");
 
       $cache("#btnStart").on("click", function(){
         puzzle.newGame();
@@ -59,21 +67,34 @@
       });
 
 
-      $cache(".puzzle__arrow--right").on("touchstart", function(e){
+      $cache(".radio").on("touchstart", function(e){
+        e.preventDefault();
+
+        var size = $(this).attr("data-size");
+        puzzle.changeGridSize(size);
+      });
+
+      $cache(".radio").on("click", function(){
+        var size = $(this).attr("data-size");
+        puzzle.changeGridSize(size);
+      });
+
+
+      $cache(".puzzle").on("touchstart", ".puzzle__arrow--right", function(e){
         e.preventDefault();
         puzzle.nextImage();
       });
 
-      $cache(".puzzle__arrow--right").on("click", function(){
+      $cache(".puzzle").on("click", ".puzzle__arrow--right", function(){
         puzzle.nextImage();
       });
 
-      $cache(".puzzle__arrow--left").on("touchstart", function(e){
+      $cache(".puzzle").on("touchstart", ".puzzle__arrow--left", function(e){
         e.preventDefault();
         puzzle.lastImage();
       });
 
-      $cache(".puzzle__arrow--left").on("click", function(){
+      $cache(".puzzle").on("click", ".puzzle__arrow--left", function(){
         puzzle.lastImage();
       });
 
@@ -99,10 +120,6 @@
     // Mobile Init
     // ========================================
     var mobileInit = function() {
-      $cache(".puzzle")
-        .removeClass("puzzle--tablet puzzle--desktop")
-        .addClass("puzzle--mobile");
-
       puzzle.config.puzzleSize = puzzle.config.mobileSize;
     };
 
@@ -110,10 +127,6 @@
     // Tablet Init
     // ========================================
     var tabletInit = function() {
-      $cache(".puzzle")
-        .removeClass("puzzle--mobile puzzle--desktop")
-        .addClass("puzzle--tablet");
-
       puzzle.config.puzzleSize = puzzle.config.tabletSize;
     };
     
@@ -121,10 +134,6 @@
     // Desktop Init
     // ========================================
     var desktopInit = function() {
-      $cache(".puzzle")
-        .removeClass("puzzle--mobile puzzle--tablet")
-        .addClass("puzzle--desktop");
-
       puzzle.config.puzzleSize = puzzle.config.desktopSize;
     };
 

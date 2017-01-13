@@ -15,7 +15,7 @@
     };
 
     var isCorrect = function() {
-      return utility.compareObjects(getAllPositions(), puzzle.grid);
+      return utility.compareObjects(getAllTilePositions(), getAllGridPositions());
     };
 
 
@@ -55,15 +55,21 @@
 
     // Position Functions
     // =======================================
-    var getAllPositions = function() {
+    var getAllTilePositions = function() {
       var posObj = {};
-      var ids = getIDs();
+  
+      for (var id in puzzle.grid) {
+        posObj[id] = getTilePosition(id);
+      }
 
-      for (var i = 0, i_end = ids.length; i < i_end; i++) {
-        var id = ids[i];
-        var position = getTilePosition(id);
+      return posObj;
+    };
 
-        posObj[id] = position;
+    var getAllGridPositions = function() {
+      var posObj = {};
+
+      for (var id in puzzle.grid) {
+        posObj[id] = puzzle.grid[id].position;
       }
 
       return posObj;
@@ -81,17 +87,18 @@
     // Public Methods
     // =======================================
     puzzle.utility = {
-      getIDs          : getIDs,
-      getTile         : getTile,
-      isCorrect       : isCorrect,
-      getLastID       : getLastID,
-      getLastTile     : getLastTile,
-      getTileSize     : getTileSize,
-      getTileCount    : getTileCount,
-      getLastImageID  : getLastImageID,
-      getAllPositions : getAllPositions,
-      getTilePosition : getTilePosition,
-      setOpenPosition : setOpenPosition
+      getIDs: getIDs,
+      getTile: getTile,
+      isCorrect: isCorrect,
+      getLastID: getLastID,
+      getLastTile: getLastTile,
+      getTileSize: getTileSize,
+      getTileCount: getTileCount,
+      getLastImageID: getLastImageID,
+      setOpenPosition: setOpenPosition,
+      getTilePosition: getTilePosition,
+      getAllTilePositions: getAllTilePositions,
+      getAllGridPositions: getAllGridPositions
     };
 
 

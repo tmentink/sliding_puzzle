@@ -6,71 +6,56 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
-
     // Setup
     // =======================================
+    var rowIndex;
+    var colIndex;
+
     var setGrid = function() {
       puzzle.grid = {};
+      rowIndex = -1;
       var tileCount = puzzle.utility.getTileCount();
-
+      
       for (var i = 0, i_end = tileCount; i < i_end; i++) {
-        puzzle.grid[i] = getGridPosition(i);
+        setGridIndexes(i);
+
+        puzzle.grid[i] = {
+          coordinates: [rowIndex, colIndex],
+          position: getGridPosition(i)
+        };
+      }
+    };
+
+    var setGridIndexes = function(i) {
+      colIndex = i % puzzle.config.rowSize;
+
+      if (i % puzzle.config.rowSize == 0) {
+        rowIndex += 1;
       }
     };
 
     var getGridPosition = function(i) {
       return {
-        top: getTopPosition(i),
-        left: getLeftPosition(i)
+        top: rowIndex * puzzle.utility.getTileSize(),
+        left: colIndex * puzzle.utility.getTileSize()
       };
-    };
-
-    var getTopPosition = function(i) {
-      switch(i) {
-        case 0:
-        case 1:
-        case 2:
-          return 0;
-
-        case 3:
-        case 4:
-        case 5:
-          return 1 * puzzle.utility.getTileSize();
-
-        case 6:
-        case 7:
-        case 8:
-          return 2 * puzzle.utility.getTileSize();
-      }
-    };
-
-    var getLeftPosition = function(i) {
-      switch(i) {
-        case 0:
-        case 3:
-        case 6:
-          return 0;
-
-        case 1:
-        case 4:
-        case 7:
-          return 1 * puzzle.utility.getTileSize();
-
-        case 2:
-        case 5:
-        case 8: 
-          return 2 * puzzle.utility.getTileSize();
-      }
     };
 
 
     // Adjacent
     // =======================================
     var getIDByPosition = function(position) {
-      for (var prop in puzzle.grid) {
-        
-        if (utility.compareObjects(puzzle.grid[prop], position)) {
-          return parseInt(prop);
+      for (var id in puzzle.grid) {
+        if (utility.compareObjects(puzzle.grid[id].position, position)) {
+          return parseInt(id);
+        }
+      }
+    };
+
+    var getIDByCoordinates = function(coordinates) {
+      for (var id in puzzle.grid) {
+        if (utility.compareObjects(puzzle.grid[id].coordinates, coordinates)) {
+          return parseInt(id);
         }
       }
     };
@@ -85,34 +70,43 @@
     };
 
     var getAdjacentIDs = function(id) {
-      switch(id) {
-        case 0:
-          return [1,3];
+      var x = puzzle.grid[id].coordinates[1];
+      var y = puzzle.grid[id].coordinates[0];
+      var ids = [];
 
-        case 1:
-          return [0,2,4];
-
-        case 2:
-          return [1,5];
-
-        case 3:
-          return [0,4,6];
-
-        case 4:
-          return [1,3,5,7];
-
-        case 5:
-          return [2,4,8];
-
-        case 6:
-          return [3,7];
-
-        case 7:
-          return [4,6,8];
-
-        case 8:
-          return [5,7];
+      if (canMoveLeft(x)) {
+        ids.push(getIDByCoordinates([y, x-1]));
       }
+
+      if (canMoveRight(x)) {
+        ids.push(getIDByCoordinates([y, x+1]));
+      }
+
+      if (canMoveUp(y)) {
+        ids.push(getIDByCoordinates([y-1, x]));
+      }
+
+      if (canMoveDown(y)) {
+        ids.push(getIDByCoordinates([y+1, x]));
+      }
+
+      return ids;
+    };
+
+    var canMoveLeft = function(x) {
+      return x > 0;
+    };
+
+    var canMoveRight = function(x) {
+      return x < (puzzle.config.rowSize - 1);
+    };
+
+    var canMoveUp = function(y) {
+      return y > 0;
+    };
+
+    var canMoveDown = function(y) {
+      return y < (puzzle.config.rowSize - 1);
     };
 
 

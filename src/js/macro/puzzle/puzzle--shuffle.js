@@ -12,7 +12,7 @@
 
       for (var i = 0, i_end = order.length; i < i_end; i++) {
         var tile = puzzle.utility.getTile(i);
-        var position = puzzle.grid[order[i]];
+        var position = puzzle.grid[order[i]].position;
         var options = getOptions(i);
         
         tile.velocity(position, options);
@@ -24,7 +24,7 @@
       var lastID = puzzle.utility.getLastID();
 
       if (i == lastID) {
-        var position = puzzle.grid[lastID];
+        var position = puzzle.grid[lastID].position;
 
         options.complete = function() {
           puzzle.utility.setOpenPosition(lastID);
@@ -36,13 +36,12 @@
       return options;
     };
 
-
     var reset = function() {
       var tileCount = puzzle.utility.getTileCount();
 
       for (var i = 0, i_end = tileCount; i < i_end; i++) {
         var tile = puzzle.utility.getTile(i);
-        var position = puzzle.grid[i];      
+        var position = puzzle.grid[i].position;      
         
         tile.velocity(position, {duration: 500});
       } 

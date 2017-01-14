@@ -7,11 +7,11 @@
     "use strict";
 
     var getTileSize = function() {
-      return (puzzle.config.puzzleSize / puzzle.config.rowSize);
+      return (puzzle.config.puzzleSize / puzzle.config.gridSize);
     };
 
     var getTileCount = function() {
-      return puzzle.config.rowSize * puzzle.config.rowSize;
+      return puzzle.config.gridSize * puzzle.config.gridSize;
     };
 
     var isCorrect = function() {

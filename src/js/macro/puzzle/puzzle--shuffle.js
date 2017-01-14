@@ -37,14 +37,16 @@
     };
 
     var reset = function() {
-      var tileCount = puzzle.utility.getTileCount();
+      puzzle.isAnimating = true;
 
-      for (var i = 0, i_end = tileCount; i < i_end; i++) {
-        var tile = puzzle.utility.getTile(i);
-        var position = puzzle.grid[i].position;      
+      for (var id in puzzle.grid) {
+        var tile = puzzle.utility.getTile(id);
+        var position = puzzle.grid[id].position;      
         
         tile.velocity(position, {duration: 500});
-      } 
+      }
+
+      puzzle.isAnimating = false;
     };
 
 

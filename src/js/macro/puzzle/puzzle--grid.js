@@ -27,9 +27,9 @@
     };
 
     var setGridIndexes = function(i) {
-      colIndex = i % puzzle.config.rowSize;
+      colIndex = i % puzzle.config.gridSize;
 
-      if (i % puzzle.config.rowSize == 0) {
+      if (i % puzzle.config.gridSize == 0) {
         rowIndex += 1;
       }
     };
@@ -98,7 +98,7 @@
     };
 
     var canMoveRight = function(x) {
-      return x < (puzzle.config.rowSize - 1);
+      return x < (puzzle.config.gridSize - 1);
     };
 
     var canMoveUp = function(y) {
@@ -106,7 +106,7 @@
     };
 
     var canMoveDown = function(y) {
-      return y < (puzzle.config.rowSize - 1);
+      return y < (puzzle.config.gridSize - 1);
     };
 
 

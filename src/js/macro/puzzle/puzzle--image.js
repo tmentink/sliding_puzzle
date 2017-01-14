@@ -7,30 +7,31 @@
     "use strict";
 
     var setImage = function() {
-      $(".puzzle__tile").css({"backgroundImage": "url(img/" + puzzle.imageID + ".jpg)"});
+      $(".puzzle__tile").css({"backgroundImage": "url(img/" + puzzle.config.imageID + ".jpg)"});
     };
 
     var nextImage = function() {
-      if (puzzle.imageID == puzzle.utility.getLastImageID()) {
-        puzzle.imageID = 0;
+      if (puzzle.config.imageID == puzzle.utility.getLastImageID()) {
+        puzzle.config.imageID = 0;
       }
       else {
-        puzzle.imageID++;
+        puzzle.config.imageID++;
       }
 
       setImage();
     };
 
     var lastImage = function() {
-      if (puzzle.imageID == 0) {
-        puzzle.imageID = puzzle.utility.getLastImageID();
+      if (puzzle.config.imageID == 0) {
+        puzzle.config.imageID = puzzle.utility.getLastImageID();
       }
       else {
-        puzzle.imageID--;
+        puzzle.config.imageID--;
       }
 
       setImage();
     };
+
 
     // Public Methods
     // =======================================

@@ -15,12 +15,14 @@
 
     var setPuzzleSize = function() {
       var size = puzzle.config.puzzleSize + "px";
+      
       $cache(".puzzle").css({"height": size, "width": size});
     };
 
     var setTileSize = function() {
       var size = puzzle.utility.getTileSize() + "px";
       var backgroundSize = puzzle.config.puzzleSize + "px";
+
       $(".puzzle__tile").css({"height": size, "width": size, "backgroundSize": backgroundSize});
     };
 

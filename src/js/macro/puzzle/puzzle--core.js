@@ -6,6 +6,12 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
+    var init = function() {
+      puzzle.setPuzzleSize();
+      puzzle.setGrid();
+      puzzle.setCSS();
+    };
+
     var newGame = function() {
       if (puzzle.isAnimating) {
         return false;
@@ -40,6 +46,7 @@
 
     // Public Methods
     // =======================================
+    puzzle.init = init;
     puzzle.newGame = newGame;
     puzzle.setScore = setScore;
     puzzle.check = check;

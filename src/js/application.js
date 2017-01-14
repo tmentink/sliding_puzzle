@@ -4470,11 +4470,12 @@
     "use strict";
 
     puzzle.config = {
-      rowSize: 3,
+      gridSize: 3,
       puzzleSize: 300,
       mobileSize: 300,
       tabletSize: 450,
       desktopSize: 600,
+      imageID: 0,
       imageIDs: [0,1,2,3,4,5,6,7,8,9,10,11,12]
     };
 
@@ -4602,11 +4603,51 @@
 
 
 // ===========================================
+// Page - Breakpoint
+// ===========================================
+
+  !(function(puzzle) {
+    "use strict";
+
+    $cache(document).ready(function() {
+      page.breakpoints.mobile.addListener(function(e){
+        if (e.matches) {
+          puzzle.init();
+          puzzle.newGame();
+        }
+      });
+
+      page.breakpoints.tablet.addListener(function(e){
+        if (e.matches) {
+          puzzle.init();
+          puzzle.newGame();
+        }
+      });
+
+      page.breakpoints.desktop.addListener(function(e){
+        if (e.matches) {
+          puzzle.init();
+          puzzle.newGame();
+        }
+      });
+    });
+
+  })(puzzle);
+
+
+
+// ===========================================
 // Puzzle - Core
 // ===========================================
 
   var puzzle = (function(puzzle) {
     "use strict";
+
+    var init = function() {
+      puzzle.setPuzzleSize();
+      puzzle.setGrid();
+      puzzle.setCSS();
+    };
 
     var newGame = function() {
       if (puzzle.isAnimating) {
@@ -4642,6 +4683,7 @@
 
     // Public Methods
     // =======================================
+    puzzle.init = init;
     puzzle.newGame = newGame;
     puzzle.setScore = setScore;
     puzzle.check = check;
@@ -4668,12 +4710,14 @@
 
     var setPuzzleSize = function() {
       var size = puzzle.config.puzzleSize + "px";
+      
       $cache(".puzzle").css({"height": size, "width": size});
     };
 
     var setTileSize = function() {
       var size = puzzle.utility.getTileSize() + "px";
       var backgroundSize = puzzle.config.puzzleSize + "px";
+
       $(".puzzle__tile").css({"height": size, "width": size, "backgroundSize": backgroundSize});
     };
 
@@ -4728,9 +4772,9 @@
     };
 
     var setGridIndexes = function(i) {
-      colIndex = i % puzzle.config.rowSize;
+      colIndex = i % puzzle.config.gridSize;
 
-      if (i % puzzle.config.rowSize == 0) {
+      if (i % puzzle.config.gridSize == 0) {
         rowIndex += 1;
       }
     };
@@ -4799,7 +4843,7 @@
     };
 
     var canMoveRight = function(x) {
-      return x < (puzzle.config.rowSize - 1);
+      return x < (puzzle.config.gridSize - 1);
     };
 
     var canMoveUp = function(y) {
@@ -4807,7 +4851,7 @@
     };
 
     var canMoveDown = function(y) {
-      return y < (puzzle.config.rowSize - 1);
+      return y < (puzzle.config.gridSize - 1);
     };
 
 
@@ -4861,30 +4905,31 @@
     "use strict";
 
     var setImage = function() {
-      $(".puzzle__tile").css({"backgroundImage": "url(img/" + puzzle.imageID + ".jpg)"});
+      $(".puzzle__tile").css({"backgroundImage": "url(img/" + puzzle.config.imageID + ".jpg)"});
     };
 
     var nextImage = function() {
-      if (puzzle.imageID == puzzle.utility.getLastImageID()) {
-        puzzle.imageID = 0;
+      if (puzzle.config.imageID == puzzle.utility.getLastImageID()) {
+        puzzle.config.imageID = 0;
       }
       else {
-        puzzle.imageID++;
+        puzzle.config.imageID++;
       }
 
       setImage();
     };
 
     var lastImage = function() {
-      if (puzzle.imageID == 0) {
-        puzzle.imageID = puzzle.utility.getLastImageID();
+      if (puzzle.config.imageID == 0) {
+        puzzle.config.imageID = puzzle.utility.getLastImageID();
       }
       else {
-        puzzle.imageID--;
+        puzzle.config.imageID--;
       }
 
       setImage();
     };
+
 
     // Public Methods
     // =======================================
@@ -4936,14 +4981,16 @@
     };
 
     var reset = function() {
-      var tileCount = puzzle.utility.getTileCount();
+      puzzle.isAnimating = true;
 
-      for (var i = 0, i_end = tileCount; i < i_end; i++) {
-        var tile = puzzle.utility.getTile(i);
-        var position = puzzle.grid[i].position;      
+      for (var id in puzzle.grid) {
+        var tile = puzzle.utility.getTile(id);
+        var position = puzzle.grid[id].position;      
         
         tile.velocity(position, {duration: 500});
-      } 
+      }
+
+      puzzle.isAnimating = false;
     };
 
 
@@ -4959,32 +5006,52 @@
 
 
 // ===========================================
-// Puzzle - Options
+// Puzzle - Size
 // ===========================================
 
   var puzzle = (function(puzzle) {
     "use strict";
 
-    var changeGridSize = function(size) {
-      if (size != puzzle.config.rowSize) {
-        toggleRadio();
-        puzzle.stop();
-        puzzle.reset();
-
-        setTimeout(function(){
-          puzzle.config.rowSize = size;
-          puzzle.setGrid();
-          puzzle.buildPuzzle();
-          puzzle.setCSS();
-        }, 600);
+    var setGridSize = function(size) {
+      if (puzzle.isAnimating ||
+          puzzle.config.gridSize == size) {
+        return false;
       }
+
+      puzzle.config.gridSize = size;
+      toggleRadio();
+      puzzle.stop();
+      puzzle.reset();
+
+      setTimeout(function(){       
+        puzzle.setGrid();
+        puzzle.buildPuzzle();
+        puzzle.setCSS();
+      }, 500);
     };
 
     var toggleRadio = function() {
       $cache(".fa", $cache("#options")).toggleClass("fa-circle fa-circle-o");
     };
 
-    puzzle.changeGridSize = changeGridSize;
+    var setPuzzleSize = function() {
+      if (page.breakpoints.mobile.matches) {
+        puzzle.config.puzzleSize = puzzle.config.mobileSize;
+      }
+      else if (page.breakpoints.tablet.matches) {
+        puzzle.config.puzzleSize = puzzle.config.tabletSize;
+      }
+      else if (page.breakpoints.desktop.matches) {
+        puzzle.config.puzzleSize = puzzle.config.desktopSize;
+      }
+    };
+
+
+    // Public Methods
+    // =======================================
+    puzzle.setGridSize = setGridSize;
+    puzzle.setPuzzleSize = setPuzzleSize;
+
 
     return puzzle;
   })(puzzle || {});
@@ -5093,11 +5160,11 @@
     "use strict";
 
     var getTileSize = function() {
-      return (puzzle.config.puzzleSize / puzzle.config.rowSize);
+      return (puzzle.config.puzzleSize / puzzle.config.gridSize);
     };
 
     var getTileCount = function() {
-      return puzzle.config.rowSize * puzzle.config.rowSize;
+      return puzzle.config.gridSize * puzzle.config.gridSize;
     };
 
     var isCorrect = function() {
@@ -5201,57 +5268,20 @@
     "use strict";
 
     $cache(document).ready(function() {
-      if (page.breakpoints.mobile.matches) {
-        mobileInit();
-      }
-      else if (page.breakpoints.tablet.matches) {
-        tabletInit();
-      }
-      else if (page.breakpoints.desktop.matches) {
-        desktopInit();
-      }
+      puzzle.init();    
+      headerEvents();
+      changeImageEvents();
+      slideTileEvents();
+      changeSizeEvents();
 
-      generalInit();
-
-      // breakpoint listeners
-      page.breakpoints.mobile.addListener(function(e){
-        if (e.matches) {
-          mobileInit();
-          puzzle.setGrid();
-          puzzle.setCSS();
-          puzzle.newGame();
-        }
-      });
-
-      page.breakpoints.tablet.addListener(function(e){
-        if (e.matches) {
-          tabletInit();
-          puzzle.setGrid();
-          puzzle.setCSS();
-          puzzle.newGame();
-        }
-      });
-
-      page.breakpoints.desktop.addListener(function(e){
-        if (e.matches) {
-          desktopInit();
-          puzzle.setGrid();
-          puzzle.setCSS();
-          puzzle.newGame();
-        }
-      });
+      $cache(".container-fluid").addClass("loaded");
     });
 
 
-    // General Init
-    // ========================================
-    var generalInit = function() {
-      puzzle.imageID = 0;
-      puzzle.setGrid();
-      puzzle.setCSS();
 
-      $cache(".container-fluid").addClass("loaded");
-
+    // Header Events
+    // ======================================== 
+    var headerEvents = function() {
       $cache("#btnStart").on("click", function(){
         puzzle.newGame();
       });
@@ -5259,21 +5289,12 @@
       $cache("#btnChange").on("click", function(){
         puzzle.change();
       });
+    };
 
 
-      $cache(".radio").on("touchstart", function(e){
-        e.preventDefault();
-
-        var size = $(this).attr("data-size");
-        puzzle.changeGridSize(size);
-      });
-
-      $cache(".radio").on("click", function(){
-        var size = $(this).attr("data-size");
-        puzzle.changeGridSize(size);
-      });
-
-
+    // Change Image Events
+    // ========================================
+    var changeImageEvents = function() {
       $cache(".puzzle").on("touchstart", ".puzzle__arrow--right", function(e){
         e.preventDefault();
         puzzle.nextImage();
@@ -5291,8 +5312,12 @@
       $cache(".puzzle").on("click", ".puzzle__arrow--left", function(){
         puzzle.lastImage();
       });
+    };
 
 
+    // Slide Tile Events
+    // ========================================
+    var slideTileEvents = function() {
       $cache(".puzzle").on("touchstart", ".puzzle__tile", function(e){
         e.preventDefault();
 
@@ -5311,24 +5336,20 @@
     };
 
 
-    // Mobile Init
-    // ========================================
-    var mobileInit = function() {
-      puzzle.config.puzzleSize = puzzle.config.mobileSize;
-    };
+    // Change Size Events
+    // ========================================   
+    var changeSizeEvents = function() {
+      $cache(".radio").on("touchstart", function(e){
+        e.preventDefault();
 
+        var size = $(this).attr("data-size");
+        puzzle.setGridSize(size);
+      });
 
-    // Tablet Init
-    // ========================================
-    var tabletInit = function() {
-      puzzle.config.puzzleSize = puzzle.config.tabletSize;
-    };
-    
-
-    // Desktop Init
-    // ========================================
-    var desktopInit = function() {
-      puzzle.config.puzzleSize = puzzle.config.desktopSize;
+      $cache(".radio").on("click", function(){
+        var size = $(this).attr("data-size");
+        puzzle.setGridSize(size);
+      });
     };
 
   })(puzzle);

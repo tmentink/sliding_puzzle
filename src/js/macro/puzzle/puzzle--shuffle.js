@@ -6,55 +6,61 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
+    // Shuffle
+    // =======================================
     var shuffle = function() {
+      var ids = getShuffledIDs();
+
+      if (isValid(ids)) {
+        puzzle.mix(ids);
+      }
+      else {
+        puzzle.shuffle();
+      }
+    };
+
+    var getShuffledIDs = function() {
+      var shuffled = [];
       var ids = puzzle.utility.getIDs();
-      var order = utility.shuffleArray(ids);
+      var n = ids.length;
+      var i;
 
-      for (var i = 0, i_end = order.length; i < i_end; i++) {
-        var tile = puzzle.utility.getTile(i);
-        var position = puzzle.grid[order[i]].position;
-        var options = getOptions(i);
-        
-        tile.velocity(position, options);
-      }      
+      while(n) {
+        i = Math.floor(Math.random() * n--);
+        shuffled.push(ids.splice(i, 1)[0]);
+      }
+
+      return shuffled;
     };
 
-    var getOptions = function(i) {
-      var options = {duration: 1250};
+    var isValid = function(ids) {
+      var clone = ids.clone();
+          clone = removeLastID(clone); 
+
+      var inversions = 0;
+      for (var i = 0, i_len = clone.length; i < i_len; i++) {
+        for (var j = i + 1, j_len = clone.length; j < j_len; j++) {
+          if (clone[j] < clone[i]) {
+            inversions++;
+          }
+        }
+      }
+
+      return inversions % 2 == 0;
+    };
+
+    var removeLastID = function(ids) {
       var lastID = puzzle.utility.getLastID();
+      var lastIDIndex = ids.indexOf(lastID);
 
-      if (i == lastID) {
-        var position = puzzle.grid[lastID].position;
-
-        options.complete = function() {
-          puzzle.utility.setOpenPosition(lastID);
-          puzzle.utility.getTile(lastID).velocity(position);
-          puzzle.isAnimating = false;
-        };
-      }
-
-      return options;
-    };
-
-    var reset = function() {
-      puzzle.isAnimating = true;
-
-      for (var id in puzzle.grid) {
-        var tile = puzzle.utility.getTile(id);
-        var position = puzzle.grid[id].position;      
-        
-        tile.velocity(position, {duration: 500});
-      }
-
-      puzzle.isAnimating = false;
+      ids.splice(lastIDIndex, 1);
+      return ids;
     };
 
 
     // Public Methods
     // =======================================
-    puzzle.shuffle = shuffle;
-    puzzle.reset = reset;
-    
+    puzzle.shuffle = shuffle; 
 
     return puzzle;
   })(puzzle || {});

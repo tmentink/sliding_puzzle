@@ -8,6 +8,8 @@ module.exports = function(grunt) {
         files: {
           "src/js/application.js" : [ "src/js/vendor/**/*.js", 
                                       "src/js/base/*.js",
+                                      "src/js/macro/puzzle/puzzle--variables.js",
+                                      "src/js/macro/puzzle/puzzle--utility.js",
                                       "src/js/macro/**/*.js",
                                       "!src/js/macro/page/page--init.js" ,
                                       "src/js/macro/page/page--init.js"

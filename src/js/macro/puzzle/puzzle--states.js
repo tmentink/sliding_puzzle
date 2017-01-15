@@ -6,6 +6,8 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
+    // Start
+    // =======================================
     var start = function() {
       puzzle.isReady = true;
       $cache(".puzzle")
@@ -16,6 +18,9 @@
         .addClass("puzzle__tile--hidden");
     };
 
+
+    // Stop
+    // =======================================
     var stop = function() {
       puzzle.isReady = false;
       $cache(".puzzle")
@@ -25,6 +30,9 @@
         .removeClass("puzzle__tile--hidden");
     };
 
+
+    // Change
+    // =======================================
     var change = function() {
       puzzle.stop();
       puzzle.reset();

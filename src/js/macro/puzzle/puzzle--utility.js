@@ -7,11 +7,11 @@
     "use strict";
 
     var getTileSize = function() {
-      return (puzzle.config.puzzleSize / puzzle.config.gridSize);
+      return (puzzle.puzzleSize / puzzle.gridSize);
     };
 
     var getTileCount = function() {
-      return puzzle.config.gridSize * puzzle.config.gridSize;
+      return puzzle.gridSize * puzzle.gridSize;
     };
 
     var isCorrect = function() {
@@ -38,6 +38,22 @@
 
     var getLastImageID = function() {
       return puzzle.config.imageIDs.length - 1;
+    };
+
+    var getIDByPosition = function(position) {
+      for (var id in puzzle.grid) {
+        if (utility.compareObjects(puzzle.grid[id].position, position)) {
+          return parseInt(id);
+        }
+      }
+    };
+
+    var getIDByCoordinates = function(coordinates) {
+      for (var id in puzzle.grid) {
+        if (utility.compareObjects(puzzle.grid[id].coordinates, coordinates)) {
+          return parseInt(id);
+        }
+      }
     };
 
 
@@ -97,6 +113,8 @@
       getLastImageID: getLastImageID,
       setOpenPosition: setOpenPosition,
       getTilePosition: getTilePosition,
+      getIDByPosition: getIDByPosition,
+      getIDByCoordinates: getIDByCoordinates,
       getAllTilePositions: getAllTilePositions,
       getAllGridPositions: getAllGridPositions
     };

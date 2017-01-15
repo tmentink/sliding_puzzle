@@ -6,13 +6,15 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
+    // Set Grid Size
+    // =======================================
     var setGridSize = function(size) {
       if (puzzle.isAnimating ||
-          puzzle.config.gridSize == size) {
+          puzzle.gridSize == size) {
         return false;
       }
 
-      puzzle.config.gridSize = size;
+      puzzle.gridSize = size;
       toggleRadio();
       puzzle.stop();
       puzzle.reset();
@@ -28,15 +30,18 @@
       $cache(".fa", $cache("#options")).toggleClass("fa-circle fa-circle-o");
     };
 
+
+    // Set Puzzle Size
+    // =======================================
     var setPuzzleSize = function() {
       if (page.breakpoints.mobile.matches) {
-        puzzle.config.puzzleSize = puzzle.config.mobileSize;
+        puzzle.puzzleSize = puzzle.config.mobileSize;
       }
       else if (page.breakpoints.tablet.matches) {
-        puzzle.config.puzzleSize = puzzle.config.tabletSize;
+        puzzle.puzzleSize = puzzle.config.tabletSize;
       }
       else if (page.breakpoints.desktop.matches) {
-        puzzle.config.puzzleSize = puzzle.config.desktopSize;
+        puzzle.puzzleSize = puzzle.config.desktopSize;
       }
     };
 

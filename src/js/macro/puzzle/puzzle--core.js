@@ -6,12 +6,17 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
+    // Init
+    // =======================================
     var init = function() {
       puzzle.setPuzzleSize();
       puzzle.setGrid();
       puzzle.setCSS();
     };
 
+
+    // New Game
+    // =======================================
     var newGame = function() {
       if (puzzle.isAnimating) {
         return false;
@@ -33,10 +38,15 @@
     };
 
 
+    // Set Score
+    // =======================================
     var setScore = function() {
       $cache(".moves").html(puzzle.moves);
     };
 
+
+    // Check
+    // =======================================
     var check = function() {
       if (puzzle.utility.isCorrect()) {
         puzzle.stop();

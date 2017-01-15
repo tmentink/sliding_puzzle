@@ -6,27 +6,35 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
+    // Set Image
+    // =======================================
     var setImage = function() {
-      $(".puzzle__tile").css({"backgroundImage": "url(img/" + puzzle.config.imageID + ".jpg)"});
+      $(".puzzle__tile").css({"backgroundImage": "url(img/" + puzzle.imageID + ".jpg)"});
     };
 
+
+    // Next Image
+    // =======================================
     var nextImage = function() {
-      if (puzzle.config.imageID == puzzle.utility.getLastImageID()) {
-        puzzle.config.imageID = 0;
+      if (puzzle.imageID == puzzle.utility.getLastImageID()) {
+        puzzle.imageID = 0;
       }
       else {
-        puzzle.config.imageID++;
+        puzzle.imageID++;
       }
 
       setImage();
     };
 
+
+    // Last Image
+    // =======================================
     var lastImage = function() {
-      if (puzzle.config.imageID == 0) {
-        puzzle.config.imageID = puzzle.utility.getLastImageID();
+      if (puzzle.imageID == 0) {
+        puzzle.imageID = puzzle.utility.getLastImageID();
       }
       else {
-        puzzle.config.imageID--;
+        puzzle.imageID--;
       }
 
       setImage();

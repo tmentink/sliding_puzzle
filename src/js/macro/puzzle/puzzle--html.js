@@ -6,6 +6,8 @@
   var puzzle = (function(puzzle) {
     "use strict";
 
+    // Build Puzzle
+    // =======================================
     var buildPuzzle = function() {
       var HTML = "";
 

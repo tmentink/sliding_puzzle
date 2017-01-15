@@ -28,6 +28,10 @@
       $cache("#btnChange").on("click", function(){
         puzzle.change();
       });
+
+      $cache("#btnSolve").on("click", function(){
+        search.start();
+      });
     };
 
 

@@ -18,6 +18,11 @@
       return utility.compareObjects(getAllTilePositions(), getAllGridPositions());
     };
 
+    var getOpenCoordinates = function() {
+      var openID = puzzle.utility.getOpenID();
+      return puzzle.grid[openID].coordinates;
+    };
+
 
     // ID Functions
     // =======================================
@@ -34,6 +39,10 @@
 
     var getLastID = function() {
       return getTileCount() - 1;
+    };
+
+    var getOpenID = function() {
+      return getIDByPosition(puzzle.openPosition);
     };
 
     var getLastImageID = function() {
@@ -107,6 +116,7 @@
       getTile: getTile,
       isCorrect: isCorrect,
       getLastID: getLastID,
+      getOpenID: getOpenID,
       getLastTile: getLastTile,
       getTileSize: getTileSize,
       getTileCount: getTileCount,
@@ -114,6 +124,7 @@
       setOpenPosition: setOpenPosition,
       getTilePosition: getTilePosition,
       getIDByPosition: getIDByPosition,
+      getOpenCoordinates: getOpenCoordinates,
       getIDByCoordinates: getIDByCoordinates,
       getAllTilePositions: getAllTilePositions,
       getAllGridPositions: getAllGridPositions

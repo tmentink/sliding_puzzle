@@ -1,3 +1,912 @@
+/**
+ * Copyright %%build:year%% Tim Down.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * HashSet
+ *
+ * This is a JavaScript implementation of HashSet, similar in concept to those found in Java or C#'s standard libraries.
+ * It is distributed as part of jshashtable and depends on jshashtable.js. It creates a single constructor function
+ * called HashSet in the global scope.
+ *
+ * Depends on: jshashtable.js
+ * Author: Tim Down <tim@timdown.co.uk>
+ * Version: %%build:version%%
+ * Build date: %%build:date%%
+ * Website: http://www.timdown.co.uk/jshashtable/
+ */
+
+function HashSet(param1, param2) {
+    var hashTable = new Hashtable(param1, param2);
+
+    this.add = function(o) {
+        hashTable.put(o, true);
+    };
+
+    this.addAll = function(arr) {
+        for (var i = 0, len = arr.length; i < len; ++i) {
+            hashTable.put(arr[i], true);
+        }
+    };
+
+    this.values = function() {
+        return hashTable.keys();
+    };
+
+    this.remove = function(o) {
+        return hashTable.remove(o) ? o : null;
+    };
+
+    this.contains = function(o) {
+        return hashTable.containsKey(o);
+    };
+
+    this.clear = function() {
+        hashTable.clear();
+    };
+
+    this.size = function() {
+        return hashTable.size();
+    };
+
+    this.isEmpty = function() {
+        return hashTable.isEmpty();
+    };
+
+    this.clone = function() {
+        var h = new HashSet(param1, param2);
+        h.addAll(hashTable.keys());
+        return h;
+    };
+
+    this.intersection = function(hashSet) {
+        var intersection = new HashSet(param1, param2);
+        var values = hashSet.values(), i = values.length, val;
+        while (i--) {
+            val = values[i];
+            if (hashTable.containsKey(val)) {
+                intersection.add(val);
+            }
+        }
+        return intersection;
+    };
+
+    this.union = function(hashSet) {
+        var union = this.clone();
+        var values = hashSet.values(), i = values.length, val;
+        while (i--) {
+            val = values[i];
+            if (!hashTable.containsKey(val)) {
+                union.add(val);
+            }
+        }
+        return union;
+    };
+
+    this.isSubsetOf = function(hashSet) {
+        var values = hashTable.keys(), i = values.length;
+        while (i--) {
+            if (!hashSet.contains(values[i])) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    this.complement = function(hashSet) {
+        var complement = new HashSet(param1, param2);
+        var values = this.values(), i = values.length, val;
+        while (i--) {
+            val = values[i];
+            if (!hashSet.contains(val)) {
+                complement.add(val);
+            }
+        }
+        return complement;
+    };
+}
+
+/**
+ * @license jahashtable, a JavaScript implementation of a hash table. It creates a single constructor function called
+ * Hashtable in the global scope.
+ *
+ * http://www.timdown.co.uk/jshashtable/
+ * Copyright %%build:year%% Tim Down.
+ * Version: %%build:version%%
+ * Build date: %%build:date%%
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var Hashtable = (function(UNDEFINED) {
+    var FUNCTION = "function", STRING = "string", UNDEF = "undefined";
+
+    // Require Array.prototype.splice, Object.prototype.hasOwnProperty and encodeURIComponent. In environments not
+    // having these (e.g. IE <= 5), we bail out now and leave Hashtable null.
+    if (typeof encodeURIComponent == UNDEF ||
+            Array.prototype.splice === UNDEFINED ||
+            Object.prototype.hasOwnProperty === UNDEFINED) {
+        return null;
+    }
+
+    function toStr(obj) {
+        return (typeof obj == STRING) ? obj : "" + obj;
+    }
+
+    function hashObject(obj) {
+        var hashCode;
+        if (typeof obj == STRING) {
+            return obj;
+        } else if (typeof obj.hashCode == FUNCTION) {
+            // Check the hashCode method really has returned a string
+            hashCode = obj.hashCode();
+            return (typeof hashCode == STRING) ? hashCode : hashObject(hashCode);
+        } else {
+            return toStr(obj);
+        }
+    }
+    
+    function merge(o1, o2) {
+        for (var i in o2) {
+            if (o2.hasOwnProperty(i)) {
+                o1[i] = o2[i];
+            }
+        }
+    }
+
+    function equals_fixedValueHasEquals(fixedValue, variableValue) {
+        return fixedValue.equals(variableValue);
+    }
+
+    function equals_fixedValueNoEquals(fixedValue, variableValue) {
+        return (typeof variableValue.equals == FUNCTION) ?
+            variableValue.equals(fixedValue) : (fixedValue === variableValue);
+    }
+
+    function createKeyValCheck(kvStr) {
+        return function(kv) {
+            if (kv === null) {
+                throw new Error("null is not a valid " + kvStr);
+            } else if (kv === UNDEFINED) {
+                throw new Error(kvStr + " must not be undefined");
+            }
+        };
+    }
+
+    var checkKey = createKeyValCheck("key"), checkValue = createKeyValCheck("value");
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    function Bucket(hash, firstKey, firstValue, equalityFunction) {
+        this[0] = hash;
+        this.entries = [];
+        this.addEntry(firstKey, firstValue);
+
+        if (equalityFunction !== null) {
+            this.getEqualityFunction = function() {
+                return equalityFunction;
+            };
+        }
+    }
+
+    var EXISTENCE = 0, ENTRY = 1, ENTRY_INDEX_AND_VALUE = 2;
+
+    function createBucketSearcher(mode) {
+        return function(key) {
+            var i = this.entries.length, entry, equals = this.getEqualityFunction(key);
+            while (i--) {
+                entry = this.entries[i];
+                if ( equals(key, entry[0]) ) {
+                    switch (mode) {
+                        case EXISTENCE:
+                            return true;
+                        case ENTRY:
+                            return entry;
+                        case ENTRY_INDEX_AND_VALUE:
+                            return [ i, entry[1] ];
+                    }
+                }
+            }
+            return false;
+        };
+    }
+
+    function createBucketLister(entryProperty) {
+        return function(aggregatedArr) {
+            var startIndex = aggregatedArr.length;
+            for (var i = 0, entries = this.entries, len = entries.length; i < len; ++i) {
+                aggregatedArr[startIndex + i] = entries[i][entryProperty];
+            }
+        };
+    }
+
+    Bucket.prototype = {
+        getEqualityFunction: function(searchValue) {
+            return (typeof searchValue.equals == FUNCTION) ? equals_fixedValueHasEquals : equals_fixedValueNoEquals;
+        },
+
+        getEntryForKey: createBucketSearcher(ENTRY),
+
+        getEntryAndIndexForKey: createBucketSearcher(ENTRY_INDEX_AND_VALUE),
+
+        removeEntryForKey: function(key) {
+            var result = this.getEntryAndIndexForKey(key);
+            if (result) {
+                this.entries.splice(result[0], 1);
+                return result[1];
+            }
+            return null;
+        },
+
+        addEntry: function(key, value) {
+            this.entries.push( [key, value] );
+        },
+
+        keys: createBucketLister(0),
+
+        values: createBucketLister(1),
+
+        getEntries: function(destEntries) {
+            var startIndex = destEntries.length;
+            for (var i = 0, entries = this.entries, len = entries.length; i < len; ++i) {
+                // Clone the entry stored in the bucket before adding to array
+                destEntries[startIndex + i] = entries[i].slice(0);
+            }
+        },
+
+        containsKey: createBucketSearcher(EXISTENCE),
+
+        containsValue: function(value) {
+            var entries = this.entries, i = entries.length;
+            while (i--) {
+                if ( value === entries[i][1] ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    // Supporting functions for searching hashtable buckets
+
+    function searchBuckets(buckets, hash) {
+        var i = buckets.length, bucket;
+        while (i--) {
+            bucket = buckets[i];
+            if (hash === bucket[0]) {
+                return i;
+            }
+        }
+        return null;
+    }
+
+    function getBucketForHash(bucketsByHash, hash) {
+        var bucket = bucketsByHash[hash];
+
+        // Check that this is a genuine bucket and not something inherited from the bucketsByHash's prototype
+        return ( bucket && (bucket instanceof Bucket) ) ? bucket : null;
+    }
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    function Hashtable() {
+        var buckets = [];
+        var bucketsByHash = {};
+        var properties = {
+            replaceDuplicateKey: true,
+            hashCode: hashObject,
+            equals: null
+        };
+
+        var arg0 = arguments[0], arg1 = arguments[1];
+        if (arg1 !== UNDEFINED) {
+            properties.hashCode = arg0;
+            properties.equals = arg1;
+        } else if (arg0 !== UNDEFINED) {
+            merge(properties, arg0);
+        }
+
+        var hashCode = properties.hashCode, equals = properties.equals;
+
+        this.properties = properties;
+
+        this.put = function(key, value) {
+            checkKey(key);
+            checkValue(value);
+            var hash = hashCode(key), bucket, bucketEntry, oldValue = null;
+
+            // Check if a bucket exists for the bucket key
+            bucket = getBucketForHash(bucketsByHash, hash);
+            if (bucket) {
+                // Check this bucket to see if it already contains this key
+                bucketEntry = bucket.getEntryForKey(key);
+                if (bucketEntry) {
+                    // This bucket entry is the current mapping of key to value, so replace the old value.
+                    // Also, we optionally replace the key so that the latest key is stored.
+                    if (properties.replaceDuplicateKey) {
+                        bucketEntry[0] = key;
+                    }
+                    oldValue = bucketEntry[1];
+                    bucketEntry[1] = value;
+                } else {
+                    // The bucket does not contain an entry for this key, so add one
+                    bucket.addEntry(key, value);
+                }
+            } else {
+                // No bucket exists for the key, so create one and put our key/value mapping in
+                bucket = new Bucket(hash, key, value, equals);
+                buckets.push(bucket);
+                bucketsByHash[hash] = bucket;
+            }
+            return oldValue;
+        };
+
+        this.get = function(key) {
+            checkKey(key);
+
+            var hash = hashCode(key);
+
+            // Check if a bucket exists for the bucket key
+            var bucket = getBucketForHash(bucketsByHash, hash);
+            if (bucket) {
+                // Check this bucket to see if it contains this key
+                var bucketEntry = bucket.getEntryForKey(key);
+                if (bucketEntry) {
+                    // This bucket entry is the current mapping of key to value, so return the value.
+                    return bucketEntry[1];
+                }
+            }
+            return null;
+        };
+
+        this.containsKey = function(key) {
+            checkKey(key);
+            var bucketKey = hashCode(key);
+
+            // Check if a bucket exists for the bucket key
+            var bucket = getBucketForHash(bucketsByHash, bucketKey);
+
+            return bucket ? bucket.containsKey(key) : false;
+        };
+
+        this.containsValue = function(value) {
+            checkValue(value);
+            var i = buckets.length;
+            while (i--) {
+                if (buckets[i].containsValue(value)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        this.clear = function() {
+            buckets.length = 0;
+            bucketsByHash = {};
+        };
+
+        this.isEmpty = function() {
+            return !buckets.length;
+        };
+
+        var createBucketAggregator = function(bucketFuncName) {
+            return function() {
+                var aggregated = [], i = buckets.length;
+                while (i--) {
+                    buckets[i][bucketFuncName](aggregated);
+                }
+                return aggregated;
+            };
+        };
+
+        this.keys = createBucketAggregator("keys");
+        this.values = createBucketAggregator("values");
+        this.entries = createBucketAggregator("getEntries");
+
+        this.remove = function(key) {
+            checkKey(key);
+
+            var hash = hashCode(key), bucketIndex, oldValue = null;
+
+            // Check if a bucket exists for the bucket key
+            var bucket = getBucketForHash(bucketsByHash, hash);
+
+            if (bucket) {
+                // Remove entry from this bucket for this key
+                oldValue = bucket.removeEntryForKey(key);
+                if (oldValue !== null) {
+                    // Entry was removed, so check if bucket is empty
+                    if (bucket.entries.length == 0) {
+                        // Bucket is empty, so remove it from the bucket collections
+                        bucketIndex = searchBuckets(buckets, hash);
+                        buckets.splice(bucketIndex, 1);
+                        delete bucketsByHash[hash];
+                    }
+                }
+            }
+            return oldValue;
+        };
+
+        this.size = function() {
+            var total = 0, i = buckets.length;
+            while (i--) {
+                total += buckets[i].entries.length;
+            }
+            return total;
+        };
+    }
+
+    Hashtable.prototype = {
+        each: function(callback) {
+            var entries = this.entries(), i = entries.length, entry;
+            while (i--) {
+                entry = entries[i];
+                callback(entry[0], entry[1]);
+            }
+        },
+
+        equals: function(hashtable) {
+            var keys, key, val, count = this.size();
+            if (count == hashtable.size()) {
+                keys = this.keys();
+                while (count--) {
+                    key = keys[count];
+                    val = hashtable.get(key);
+                    if (val === null || val !== this.get(key)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        },
+
+        putAll: function(hashtable, conflictCallback) {
+            var entries = hashtable.entries();
+            var entry, key, value, thisValue, i = entries.length;
+            var hasConflictCallback = (typeof conflictCallback == FUNCTION);
+            while (i--) {
+                entry = entries[i];
+                key = entry[0];
+                value = entry[1];
+
+                // Check for a conflict. The default behaviour is to overwrite the value for an existing key
+                if ( hasConflictCallback && (thisValue = this.get(key)) ) {
+                    value = conflictCallback(key, thisValue, value);
+                }
+                this.put(key, value);
+            }
+        },
+
+        clone: function() {
+            var clone = new Hashtable(this.properties);
+            clone.putAll(this);
+            return clone;
+        }
+    };
+
+    Hashtable.prototype.toQueryString = function() {
+        var entries = this.entries(), i = entries.length, entry;
+        var parts = [];
+        while (i--) {
+            entry = entries[i];
+            parts[i] = encodeURIComponent( toStr(entry[0]) ) + "=" + encodeURIComponent( toStr(entry[1]) );
+        }
+        return parts.join("&");
+    };
+
+    return Hashtable;
+})();
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.PriorityQueue = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+var AbstractPriorityQueue, ArrayStrategy, BHeapStrategy, BinaryHeapStrategy, PriorityQueue,
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
+
+AbstractPriorityQueue = _dereq_('./PriorityQueue/AbstractPriorityQueue');
+
+ArrayStrategy = _dereq_('./PriorityQueue/ArrayStrategy');
+
+BinaryHeapStrategy = _dereq_('./PriorityQueue/BinaryHeapStrategy');
+
+BHeapStrategy = _dereq_('./PriorityQueue/BHeapStrategy');
+
+PriorityQueue = (function(superClass) {
+  extend(PriorityQueue, superClass);
+
+  function PriorityQueue(options) {
+    options || (options = {});
+    options.strategy || (options.strategy = BinaryHeapStrategy);
+    options.comparator || (options.comparator = function(a, b) {
+      return (a || 0) - (b || 0);
+    });
+    PriorityQueue.__super__.constructor.call(this, options);
+  }
+
+  return PriorityQueue;
+
+})(AbstractPriorityQueue);
+
+PriorityQueue.ArrayStrategy = ArrayStrategy;
+
+PriorityQueue.BinaryHeapStrategy = BinaryHeapStrategy;
+
+PriorityQueue.BHeapStrategy = BHeapStrategy;
+
+module.exports = PriorityQueue;
+
+
+},{"./PriorityQueue/AbstractPriorityQueue":2,"./PriorityQueue/ArrayStrategy":3,"./PriorityQueue/BHeapStrategy":4,"./PriorityQueue/BinaryHeapStrategy":5}],2:[function(_dereq_,module,exports){
+var AbstractPriorityQueue;
+
+module.exports = AbstractPriorityQueue = (function() {
+  function AbstractPriorityQueue(options) {
+    var ref;
+    if ((options != null ? options.strategy : void 0) == null) {
+      throw 'Must pass options.strategy, a strategy';
+    }
+    if ((options != null ? options.comparator : void 0) == null) {
+      throw 'Must pass options.comparator, a comparator';
+    }
+    this.priv = new options.strategy(options);
+    this.length = (options != null ? (ref = options.initialValues) != null ? ref.length : void 0 : void 0) || 0;
+  }
+
+  AbstractPriorityQueue.prototype.queue = function(value) {
+    this.length++;
+    this.priv.queue(value);
+    return void 0;
+  };
+
+  AbstractPriorityQueue.prototype.dequeue = function(value) {
+    if (!this.length) {
+      throw 'Empty queue';
+    }
+    this.length--;
+    return this.priv.dequeue();
+  };
+
+  AbstractPriorityQueue.prototype.peek = function(value) {
+    if (!this.length) {
+      throw 'Empty queue';
+    }
+    return this.priv.peek();
+  };
+
+  AbstractPriorityQueue.prototype.clear = function() {
+    this.length = 0;
+    return this.priv.clear();
+  };
+
+  return AbstractPriorityQueue;
+
+})();
+
+
+},{}],3:[function(_dereq_,module,exports){
+var ArrayStrategy, binarySearchForIndexReversed;
+
+binarySearchForIndexReversed = function(array, value, comparator) {
+  var high, low, mid;
+  low = 0;
+  high = array.length;
+  while (low < high) {
+    mid = (low + high) >>> 1;
+    if (comparator(array[mid], value) >= 0) {
+      low = mid + 1;
+    } else {
+      high = mid;
+    }
+  }
+  return low;
+};
+
+module.exports = ArrayStrategy = (function() {
+  function ArrayStrategy(options) {
+    var ref;
+    this.options = options;
+    this.comparator = this.options.comparator;
+    this.data = ((ref = this.options.initialValues) != null ? ref.slice(0) : void 0) || [];
+    this.data.sort(this.comparator).reverse();
+  }
+
+  ArrayStrategy.prototype.queue = function(value) {
+    var pos;
+    pos = binarySearchForIndexReversed(this.data, value, this.comparator);
+    this.data.splice(pos, 0, value);
+    return void 0;
+  };
+
+  ArrayStrategy.prototype.dequeue = function() {
+    return this.data.pop();
+  };
+
+  ArrayStrategy.prototype.peek = function() {
+    return this.data[this.data.length - 1];
+  };
+
+  ArrayStrategy.prototype.clear = function() {
+    this.data.length = 0;
+    return void 0;
+  };
+
+  return ArrayStrategy;
+
+})();
+
+
+},{}],4:[function(_dereq_,module,exports){
+var BHeapStrategy;
+
+module.exports = BHeapStrategy = (function() {
+  function BHeapStrategy(options) {
+    var arr, i, j, k, len, ref, ref1, shift, value;
+    this.comparator = (options != null ? options.comparator : void 0) || function(a, b) {
+      return a - b;
+    };
+    this.pageSize = (options != null ? options.pageSize : void 0) || 512;
+    this.length = 0;
+    shift = 0;
+    while ((1 << shift) < this.pageSize) {
+      shift += 1;
+    }
+    if (1 << shift !== this.pageSize) {
+      throw 'pageSize must be a power of two';
+    }
+    this._shift = shift;
+    this._emptyMemoryPageTemplate = arr = [];
+    for (i = j = 0, ref = this.pageSize; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
+      arr.push(null);
+    }
+    this._memory = [];
+    this._mask = this.pageSize - 1;
+    if (options.initialValues) {
+      ref1 = options.initialValues;
+      for (k = 0, len = ref1.length; k < len; k++) {
+        value = ref1[k];
+        this.queue(value);
+      }
+    }
+  }
+
+  BHeapStrategy.prototype.queue = function(value) {
+    this.length += 1;
+    this._write(this.length, value);
+    this._bubbleUp(this.length, value);
+    return void 0;
+  };
+
+  BHeapStrategy.prototype.dequeue = function() {
+    var ret, val;
+    ret = this._read(1);
+    val = this._read(this.length);
+    this.length -= 1;
+    if (this.length > 0) {
+      this._write(1, val);
+      this._bubbleDown(1, val);
+    }
+    return ret;
+  };
+
+  BHeapStrategy.prototype.peek = function() {
+    return this._read(1);
+  };
+
+  BHeapStrategy.prototype.clear = function() {
+    this.length = 0;
+    this._memory.length = 0;
+    return void 0;
+  };
+
+  BHeapStrategy.prototype._write = function(index, value) {
+    var page;
+    page = index >> this._shift;
+    while (page >= this._memory.length) {
+      this._memory.push(this._emptyMemoryPageTemplate.slice(0));
+    }
+    return this._memory[page][index & this._mask] = value;
+  };
+
+  BHeapStrategy.prototype._read = function(index) {
+    return this._memory[index >> this._shift][index & this._mask];
+  };
+
+  BHeapStrategy.prototype._bubbleUp = function(index, value) {
+    var compare, indexInPage, parentIndex, parentValue;
+    compare = this.comparator;
+    while (index > 1) {
+      indexInPage = index & this._mask;
+      if (index < this.pageSize || indexInPage > 3) {
+        parentIndex = (index & ~this._mask) | (indexInPage >> 1);
+      } else if (indexInPage < 2) {
+        parentIndex = (index - this.pageSize) >> this._shift;
+        parentIndex += parentIndex & ~(this._mask >> 1);
+        parentIndex |= this.pageSize >> 1;
+      } else {
+        parentIndex = index - 2;
+      }
+      parentValue = this._read(parentIndex);
+      if (compare(parentValue, value) < 0) {
+        break;
+      }
+      this._write(parentIndex, value);
+      this._write(index, parentValue);
+      index = parentIndex;
+    }
+    return void 0;
+  };
+
+  BHeapStrategy.prototype._bubbleDown = function(index, value) {
+    var childIndex1, childIndex2, childValue1, childValue2, compare;
+    compare = this.comparator;
+    while (index < this.length) {
+      if (index > this._mask && !(index & (this._mask - 1))) {
+        childIndex1 = childIndex2 = index + 2;
+      } else if (index & (this.pageSize >> 1)) {
+        childIndex1 = (index & ~this._mask) >> 1;
+        childIndex1 |= index & (this._mask >> 1);
+        childIndex1 = (childIndex1 + 1) << this._shift;
+        childIndex2 = childIndex1 + 1;
+      } else {
+        childIndex1 = index + (index & this._mask);
+        childIndex2 = childIndex1 + 1;
+      }
+      if (childIndex1 !== childIndex2 && childIndex2 <= this.length) {
+        childValue1 = this._read(childIndex1);
+        childValue2 = this._read(childIndex2);
+        if (compare(childValue1, value) < 0 && compare(childValue1, childValue2) <= 0) {
+          this._write(childIndex1, value);
+          this._write(index, childValue1);
+          index = childIndex1;
+        } else if (compare(childValue2, value) < 0) {
+          this._write(childIndex2, value);
+          this._write(index, childValue2);
+          index = childIndex2;
+        } else {
+          break;
+        }
+      } else if (childIndex1 <= this.length) {
+        childValue1 = this._read(childIndex1);
+        if (compare(childValue1, value) < 0) {
+          this._write(childIndex1, value);
+          this._write(index, childValue1);
+          index = childIndex1;
+        } else {
+          break;
+        }
+      } else {
+        break;
+      }
+    }
+    return void 0;
+  };
+
+  return BHeapStrategy;
+
+})();
+
+
+},{}],5:[function(_dereq_,module,exports){
+var BinaryHeapStrategy;
+
+module.exports = BinaryHeapStrategy = (function() {
+  function BinaryHeapStrategy(options) {
+    var ref;
+    this.comparator = (options != null ? options.comparator : void 0) || function(a, b) {
+      return a - b;
+    };
+    this.length = 0;
+    this.data = ((ref = options.initialValues) != null ? ref.slice(0) : void 0) || [];
+    this._heapify();
+  }
+
+  BinaryHeapStrategy.prototype._heapify = function() {
+    var i, j, ref;
+    if (this.data.length > 0) {
+      for (i = j = 1, ref = this.data.length; 1 <= ref ? j < ref : j > ref; i = 1 <= ref ? ++j : --j) {
+        this._bubbleUp(i);
+      }
+    }
+    return void 0;
+  };
+
+  BinaryHeapStrategy.prototype.queue = function(value) {
+    this.data.push(value);
+    this._bubbleUp(this.data.length - 1);
+    return void 0;
+  };
+
+  BinaryHeapStrategy.prototype.dequeue = function() {
+    var last, ret;
+    ret = this.data[0];
+    last = this.data.pop();
+    if (this.data.length > 0) {
+      this.data[0] = last;
+      this._bubbleDown(0);
+    }
+    return ret;
+  };
+
+  BinaryHeapStrategy.prototype.peek = function() {
+    return this.data[0];
+  };
+
+  BinaryHeapStrategy.prototype.clear = function() {
+    this.length = 0;
+    this.data.length = 0;
+    return void 0;
+  };
+
+  BinaryHeapStrategy.prototype._bubbleUp = function(pos) {
+    var parent, x;
+    while (pos > 0) {
+      parent = (pos - 1) >>> 1;
+      if (this.comparator(this.data[pos], this.data[parent]) < 0) {
+        x = this.data[parent];
+        this.data[parent] = this.data[pos];
+        this.data[pos] = x;
+        pos = parent;
+      } else {
+        break;
+      }
+    }
+    return void 0;
+  };
+
+  BinaryHeapStrategy.prototype._bubbleDown = function(pos) {
+    var last, left, minIndex, right, x;
+    last = this.data.length - 1;
+    while (true) {
+      left = (pos << 1) + 1;
+      right = left + 1;
+      minIndex = pos;
+      if (left <= last && this.comparator(this.data[left], this.data[minIndex]) < 0) {
+        minIndex = left;
+      }
+      if (right <= last && this.comparator(this.data[right], this.data[minIndex]) < 0) {
+        minIndex = right;
+      }
+      if (minIndex !== pos) {
+        x = this.data[minIndex];
+        this.data[minIndex] = this.data[pos];
+        this.data[pos] = x;
+        pos = minIndex;
+      } else {
+        break;
+      }
+    }
+    return void 0;
+  };
+
+  return BinaryHeapStrategy;
+
+})();
+
+
+},{}]},{},[1])(1)
+});
 /*! VelocityJS.org (1.3.2). (C) 2014 Julian Shapiro. MIT @license: en.wikipedia.org/wiki/MIT_License */
 
 /*************************
@@ -4470,17 +5379,38 @@
     "use strict";
 
     puzzle.config = {
-      gridSize: 3,
-      puzzleSize: 300,
       mobileSize: 300,
       tabletSize: 450,
       desktopSize: 600,
-      imageID: 0,
       imageIDs: [0,1,2,3,4,5,6,7,8,9,10,11,12]
     };
 
     return puzzle;
   })(puzzle || {});
+
+
+
+// ===========================================
+// Extensions
+// ===========================================
+
+  !(function (root) {
+    "use strict";
+
+    // Array Clone
+    // =======================================
+    Array.prototype.clone = function() {
+      return JSON.parse(JSON.stringify(this));
+    };
+
+
+    // Array Inlcudes 
+    // =======================================
+    Array.prototype.includes = function(value) {
+      return this.indexOf(value) > -1;
+    };
+    
+  })(this);
 
 
 
@@ -4603,549 +5533,22 @@
 
 
 // ===========================================
-// Page - Breakpoint
-// ===========================================
-
-  !(function(puzzle) {
-    "use strict";
-
-    $cache(document).ready(function() {
-      page.breakpoints.mobile.addListener(function(e){
-        if (e.matches) {
-          puzzle.init();
-          puzzle.newGame();
-        }
-      });
-
-      page.breakpoints.tablet.addListener(function(e){
-        if (e.matches) {
-          puzzle.init();
-          puzzle.newGame();
-        }
-      });
-
-      page.breakpoints.desktop.addListener(function(e){
-        if (e.matches) {
-          puzzle.init();
-          puzzle.newGame();
-        }
-      });
-    });
-
-  })(puzzle);
-
-
-
-// ===========================================
-// Puzzle - Core
+// Puzzle - Variables
 // ===========================================
 
   var puzzle = (function(puzzle) {
     "use strict";
 
-    var init = function() {
-      puzzle.setPuzzleSize();
-      puzzle.setGrid();
-      puzzle.setCSS();
-    };
-
-    var newGame = function() {
-      if (puzzle.isAnimating) {
-        return false;
-      }
-
-      puzzle.isAnimating = true;
-      puzzle.moves = 0;
-      puzzle.setScore();
-
-      var delay = 250;
-      if (!puzzle.isReady) {
-        puzzle.start();
-        delay = 1000;
-      }
-
-      setTimeout(function(){
-        puzzle.shuffle();
-      }, delay);
-    };
-
-
-    var setScore = function() {
-      $cache(".moves").html(puzzle.moves);
-    };
-
-    var check = function() {
-      if (puzzle.utility.isCorrect()) {
-        puzzle.stop();
-      }
-    };
-
-
-    // Public Methods
-    // =======================================
-    puzzle.init = init;
-    puzzle.newGame = newGame;
-    puzzle.setScore = setScore;
-    puzzle.check = check;
-
-
-    return puzzle;
-  })(puzzle || {});
-
-
-
-// ===========================================
-// Puzzle - CSS
-// ===========================================
-
-  var puzzle = (function(puzzle) {
-    "use strict";
-
-    var setCSS = function() {
-      setPuzzleSize();
-      setTileSize();
-      setTilePosition();
-      puzzle.setImage();
-    };
-
-    var setPuzzleSize = function() {
-      var size = puzzle.config.puzzleSize + "px";
-      
-      $cache(".puzzle").css({"height": size, "width": size});
-    };
-
-    var setTileSize = function() {
-      var size = puzzle.utility.getTileSize() + "px";
-      var backgroundSize = puzzle.config.puzzleSize + "px";
-
-      $(".puzzle__tile").css({"height": size, "width": size, "backgroundSize": backgroundSize});
-    };
-
-    var setTilePosition = function() {
-      var gridPositions = puzzle.utility.getAllGridPositions();
-
-      for (var id in puzzle.grid) {
-        var tile = puzzle.utility.getTile(id);
-        var left = gridPositions[id].left;
-        var top  = gridPositions[id].top;
-        var backgroundPosition = "-" + left + "px -" + top + "px";
-
-        tile.css({"top": top, "left": left, "backgroundPosition": backgroundPosition});
-      }
-    }
-
-
-    // Public Methods
-    // =======================================
-    puzzle.setCSS = setCSS;
-
-    return puzzle;
-  })(puzzle || {});
-
-
-
-// ===========================================
-// Puzzle - Grid
-// ===========================================
-
-  var puzzle = (function(puzzle) {
-    "use strict";
-
-    // Setup
-    // =======================================
-    var rowIndex;
-    var colIndex;
-
-    var setGrid = function() {
-      puzzle.grid = {};
-      rowIndex = -1;
-      var tileCount = puzzle.utility.getTileCount();
-      
-      for (var i = 0, i_end = tileCount; i < i_end; i++) {
-        setGridIndexes(i);
-
-        puzzle.grid[i] = {
-          coordinates: [rowIndex, colIndex],
-          position: getGridPosition(i)
-        };
-      }
-    };
-
-    var setGridIndexes = function(i) {
-      colIndex = i % puzzle.config.gridSize;
-
-      if (i % puzzle.config.gridSize == 0) {
-        rowIndex += 1;
-      }
-    };
-
-    var getGridPosition = function(i) {
-      return {
-        top: rowIndex * puzzle.utility.getTileSize(),
-        left: colIndex * puzzle.utility.getTileSize()
-      };
-    };
-
-
-    // Adjacent
-    // =======================================
-    var getIDByPosition = function(position) {
-      for (var id in puzzle.grid) {
-        if (utility.compareObjects(puzzle.grid[id].position, position)) {
-          return parseInt(id);
-        }
-      }
-    };
-
-    var getIDByCoordinates = function(coordinates) {
-      for (var id in puzzle.grid) {
-        if (utility.compareObjects(puzzle.grid[id].coordinates, coordinates)) {
-          return parseInt(id);
-        }
-      }
-    };
-
-    var isAdjacent = function(id) {
-      var tilePosition = puzzle.utility.getTilePosition(id);
-      var gridID = getIDByPosition(tilePosition);
-      var adjacentIDs = getAdjacentIDs(gridID);
-      var openID = getIDByPosition(puzzle.openPosition);
-
-      return adjacentIDs.indexOf(openID) > -1;
-    };
-
-    var getAdjacentIDs = function(id) {
-      var x = puzzle.grid[id].coordinates[1];
-      var y = puzzle.grid[id].coordinates[0];
-      var ids = [];
-
-      if (canMoveLeft(x)) {
-        ids.push(getIDByCoordinates([y, x-1]));
-      }
-
-      if (canMoveRight(x)) {
-        ids.push(getIDByCoordinates([y, x+1]));
-      }
-
-      if (canMoveUp(y)) {
-        ids.push(getIDByCoordinates([y-1, x]));
-      }
-
-      if (canMoveDown(y)) {
-        ids.push(getIDByCoordinates([y+1, x]));
-      }
-
-      return ids;
-    };
-
-    var canMoveLeft = function(x) {
-      return x > 0;
-    };
-
-    var canMoveRight = function(x) {
-      return x < (puzzle.config.gridSize - 1);
-    };
-
-    var canMoveUp = function(y) {
-      return y > 0;
-    };
-
-    var canMoveDown = function(y) {
-      return y < (puzzle.config.gridSize - 1);
-    };
-
-
-    // Public Methods
-    // =======================================
-    puzzle.isAdjacent = isAdjacent;
-    puzzle.setGrid = setGrid;
-    
-
-    return puzzle;
-  })(puzzle || {});
-
-
-
-// ===========================================
-// Puzzle - HTML
-// ===========================================
-
-  var puzzle = (function(puzzle) {
-    "use strict";
-
-    var buildPuzzle = function() {
-      var HTML = "";
-
-      for (var id in puzzle.grid) {
-        HTML += buildTile(id);
-      }
-
-      $cache("#tiles").html(HTML);
-    };
-
-    var buildTile = function(id) {
-      return "<div data-id='" + id + "' class='puzzle__tile'></div>";
-    };
-
-
-    // Public Methods
-    // =======================================
-    puzzle.buildPuzzle = buildPuzzle;
-
-    return puzzle;
-  })(puzzle || {});
-
-
-
-// ===========================================
-// Puzzle - Image
-// ===========================================
-
-  var puzzle = (function(puzzle) {
-    "use strict";
-
-    var setImage = function() {
-      $(".puzzle__tile").css({"backgroundImage": "url(img/" + puzzle.config.imageID + ".jpg)"});
-    };
-
-    var nextImage = function() {
-      if (puzzle.config.imageID == puzzle.utility.getLastImageID()) {
-        puzzle.config.imageID = 0;
-      }
-      else {
-        puzzle.config.imageID++;
-      }
-
-      setImage();
-    };
-
-    var lastImage = function() {
-      if (puzzle.config.imageID == 0) {
-        puzzle.config.imageID = puzzle.utility.getLastImageID();
-      }
-      else {
-        puzzle.config.imageID--;
-      }
-
-      setImage();
-    };
-
-
-    // Public Methods
-    // =======================================
-    puzzle.setImage = setImage;
-    puzzle.nextImage = nextImage;
-    puzzle.lastImage = lastImage;
-
-
-    return puzzle;
-  })(puzzle || {});
-
-
-
-// ===========================================
-// Puzzle - Shuffle
-// ===========================================
-
-  var puzzle = (function(puzzle) {
-    "use strict";
-
-    var shuffle = function() {
-      var ids = puzzle.utility.getIDs();
-      var order = utility.shuffleArray(ids);
-
-      for (var i = 0, i_end = order.length; i < i_end; i++) {
-        var tile = puzzle.utility.getTile(i);
-        var position = puzzle.grid[order[i]].position;
-        var options = getOptions(i);
-        
-        tile.velocity(position, options);
-      }      
-    };
-
-    var getOptions = function(i) {
-      var options = {duration: 1250};
-      var lastID = puzzle.utility.getLastID();
-
-      if (i == lastID) {
-        var position = puzzle.grid[lastID].position;
-
-        options.complete = function() {
-          puzzle.utility.setOpenPosition(lastID);
-          puzzle.utility.getTile(lastID).velocity(position);
-          puzzle.isAnimating = false;
-        };
-      }
-
-      return options;
-    };
-
-    var reset = function() {
-      puzzle.isAnimating = true;
-
-      for (var id in puzzle.grid) {
-        var tile = puzzle.utility.getTile(id);
-        var position = puzzle.grid[id].position;      
-        
-        tile.velocity(position, {duration: 500});
-      }
-
-      puzzle.isAnimating = false;
-    };
-
-
-    // Public Methods
-    // =======================================
-    puzzle.shuffle = shuffle;
-    puzzle.reset = reset;
-    
-
-    return puzzle;
-  })(puzzle || {});
-
-
-
-// ===========================================
-// Puzzle - Size
-// ===========================================
-
-  var puzzle = (function(puzzle) {
-    "use strict";
-
-    var setGridSize = function(size) {
-      if (puzzle.isAnimating ||
-          puzzle.config.gridSize == size) {
-        return false;
-      }
-
-      puzzle.config.gridSize = size;
-      toggleRadio();
-      puzzle.stop();
-      puzzle.reset();
-
-      setTimeout(function(){       
-        puzzle.setGrid();
-        puzzle.buildPuzzle();
-        puzzle.setCSS();
-      }, 500);
-    };
-
-    var toggleRadio = function() {
-      $cache(".fa", $cache("#options")).toggleClass("fa-circle fa-circle-o");
-    };
-
-    var setPuzzleSize = function() {
-      if (page.breakpoints.mobile.matches) {
-        puzzle.config.puzzleSize = puzzle.config.mobileSize;
-      }
-      else if (page.breakpoints.tablet.matches) {
-        puzzle.config.puzzleSize = puzzle.config.tabletSize;
-      }
-      else if (page.breakpoints.desktop.matches) {
-        puzzle.config.puzzleSize = puzzle.config.desktopSize;
-      }
-    };
-
-
-    // Public Methods
-    // =======================================
-    puzzle.setGridSize = setGridSize;
-    puzzle.setPuzzleSize = setPuzzleSize;
-
-
-    return puzzle;
-  })(puzzle || {});
-
-
-
-// ===========================================
-// Puzzle - Sliding
-// ===========================================
-
-  var puzzle = (function(puzzle) {
-    "use strict";
-
-    var slide = function(id) {
-      if (puzzle.isAnimating) {
-        return false;
-      }
-
-      if (puzzle.debug || 
-          puzzle.isAdjacent(id)) {
-        
-        var tile = puzzle.utility.getTile(id);
-        var options = getOptions(id);
-
-        tile.velocity(puzzle.openPosition, options);
-      }
-    };
-
-    var getOptions = function(id) {
-      return {
-        duration: 250,
-        begin: function() {
-          puzzle.isAnimating = true;
-          puzzle.moves ++;
-          puzzle.utility.setOpenPosition(id);
-        },
-        complete: function() {
-          puzzle.isAnimating = false;
-          puzzle.setScore();
-          puzzle.check();
-        }
-      }
-    };
-
-
-    // Public Methods
-    // =======================================
-    puzzle.slide = slide;
-    
-
-    return puzzle;
-  })(puzzle || {});
-
-
-
-// ===========================================
-// Puzzle - States
-// ===========================================
-
-  var puzzle = (function(puzzle) {
-    "use strict";
-
-    var start = function() {
-      puzzle.isReady = true;
-      $cache(".puzzle")
-        .addClass("puzzle--tiled")
-        .removeClass("puzzle--change");
-
-      puzzle.utility.getLastTile()
-        .addClass("puzzle__tile--hidden");
-    };
-
-    var stop = function() {
-      puzzle.isReady = false;
-      $cache(".puzzle")
-        .removeClass("puzzle--tiled puzzle--change");
-
-      puzzle.utility.getLastTile()
-        .removeClass("puzzle__tile--hidden");
-    };
-
-    var change = function() {
-      puzzle.stop();
-      puzzle.reset();
-      $cache(".puzzle").addClass("puzzle--change");
-    };
-
-
-    // Public Methods
-    // =======================================
-    puzzle.start = start;
-    puzzle.stop = stop;
-    puzzle.change = change;
-
+    // Variables
+    // =======================================    
+    puzzle.isReady = false;
+    puzzle.isAnimating = false;
+
+    puzzle.grid;
+    puzzle.moves = 0;
+    puzzle.gridSize = 3;
+    puzzle.puzzleSize = 300;
+    puzzle.imageID = 0;
 
     return puzzle;
   })(puzzle || {});
@@ -5160,15 +5563,20 @@
     "use strict";
 
     var getTileSize = function() {
-      return (puzzle.config.puzzleSize / puzzle.config.gridSize);
+      return (puzzle.puzzleSize / puzzle.gridSize);
     };
 
     var getTileCount = function() {
-      return puzzle.config.gridSize * puzzle.config.gridSize;
+      return puzzle.gridSize * puzzle.gridSize;
     };
 
     var isCorrect = function() {
       return utility.compareObjects(getAllTilePositions(), getAllGridPositions());
+    };
+
+    var getOpenCoordinates = function() {
+      var openID = puzzle.utility.getOpenID();
+      return puzzle.grid[openID].coordinates;
     };
 
 
@@ -5189,8 +5597,28 @@
       return getTileCount() - 1;
     };
 
+    var getOpenID = function() {
+      return getIDByPosition(puzzle.openPosition);
+    };
+
     var getLastImageID = function() {
       return puzzle.config.imageIDs.length - 1;
+    };
+
+    var getIDByPosition = function(position) {
+      for (var id in puzzle.grid) {
+        if (utility.compareObjects(puzzle.grid[id].position, position)) {
+          return parseInt(id);
+        }
+      }
+    };
+
+    var getIDByCoordinates = function(coordinates) {
+      for (var id in puzzle.grid) {
+        if (utility.compareObjects(puzzle.grid[id].coordinates, coordinates)) {
+          return parseInt(id);
+        }
+      }
     };
 
 
@@ -5244,12 +5672,16 @@
       getTile: getTile,
       isCorrect: isCorrect,
       getLastID: getLastID,
+      getOpenID: getOpenID,
       getLastTile: getLastTile,
       getTileSize: getTileSize,
       getTileCount: getTileCount,
       getLastImageID: getLastImageID,
       setOpenPosition: setOpenPosition,
       getTilePosition: getTilePosition,
+      getIDByPosition: getIDByPosition,
+      getOpenCoordinates: getOpenCoordinates,
+      getIDByCoordinates: getIDByCoordinates,
       getAllTilePositions: getAllTilePositions,
       getAllGridPositions: getAllGridPositions
     };
@@ -5257,6 +5689,1182 @@
 
     return puzzle;
   })(puzzle || {});
+
+
+
+// ===========================================
+// Page - Breakpoint
+// ===========================================
+
+  !(function(puzzle) {
+    "use strict";
+
+    $cache(document).ready(function() {
+      page.breakpoints.mobile.addListener(function(e){
+        if (e.matches) {
+          puzzle.init();
+          puzzle.newGame();
+        }
+      });
+
+      page.breakpoints.tablet.addListener(function(e){
+        if (e.matches) {
+          puzzle.init();
+          puzzle.newGame();
+        }
+      });
+
+      page.breakpoints.desktop.addListener(function(e){
+        if (e.matches) {
+          puzzle.init();
+          puzzle.newGame();
+        }
+      });
+    });
+
+  })(puzzle);
+
+
+
+// ===========================================
+// Puzzle - Adjacent
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    // References
+    // =======================================
+    var getTilePosition = puzzle.utility.getTilePosition;
+    var getIDByPosition = puzzle.utility.getIDByPosition;
+    var getIDByCoordinates = puzzle.utility.getIDByCoordinates;
+
+
+    // Adjacent
+    // =======================================
+    var isAdjacent = function(id) {
+      var tilePosition = getTilePosition(id);
+      var gridID = getIDByPosition(tilePosition);
+      var adjacentIDs = getAdjacentIDs(gridID);
+      var openID = getIDByPosition(puzzle.openPosition);
+
+      return adjacentIDs.includes(openID);
+    };
+
+    var getAdjacentIDs = function(id) {
+      var x = puzzle.grid[id].coordinates[1];
+      var y = puzzle.grid[id].coordinates[0];
+      var ids = [];
+
+      if (canMoveLeft(x)) {
+        ids.push(getIDByCoordinates([y, x-1]));
+      }
+
+      if (canMoveRight(x)) {
+        ids.push(getIDByCoordinates([y, x+1]));
+      }
+
+      if (canMoveUp(y)) {
+        ids.push(getIDByCoordinates([y-1, x]));
+      }
+
+      if (canMoveDown(y)) {
+        ids.push(getIDByCoordinates([y+1, x]));
+      }
+
+      return ids;
+    };
+
+    var canMoveLeft = function(x) {
+      return x > 0;
+    };
+
+    var canMoveRight = function(x) {
+      return x < (puzzle.gridSize - 1);
+    };
+
+    var canMoveUp = function(y) {
+      return y > 0;
+    };
+
+    var canMoveDown = function(y) {
+      return y < (puzzle.gridSize - 1);
+    };
+
+
+    // Public Methods
+    // =======================================
+    puzzle.isAdjacent = isAdjacent;
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - Animation
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    // References
+    // =======================================
+    var getTile = puzzle.utility.getTile;
+    var getLastID = puzzle.utility.getLastID;
+    var getLastTile = puzzle.utility.getLastTile;
+    var setOpenPosition = puzzle.utility.setOpenPosition;
+
+
+    // Slide
+    // =======================================
+    var slide = function(id) {
+      if (puzzle.isAnimating) {
+        return false;
+      }
+
+      if (puzzle.debug || 
+          puzzle.isAdjacent(id)) {
+        
+        var tile = getTile(id);
+        var options = getSlideOptions(id);
+
+        tile.velocity(puzzle.openPosition, options);
+      }
+    };
+
+    var getSlideOptions = function(id) {
+      return {
+        duration: 250,
+        begin: function() {
+          puzzle.isAnimating = true;
+          puzzle.moves ++;
+          setOpenPosition(id);
+        },
+        complete: function() {
+          puzzle.isAnimating = false;
+          puzzle.setScore();
+          puzzle.check();
+        }
+      }
+    };
+
+
+    // Mix
+    // =======================================
+    var mix = function(ids) {
+      puzzle.isAnimating = true;
+
+      for (var i = 0, i_end = ids.length; i < i_end; i++) {
+        var id = ids[i];
+        var tile = getTile(id);
+        var position = puzzle.grid[i].position;
+        var options = getMixOptions(i);
+        
+        tile.velocity(position, options);
+      }   
+    };
+
+    var getMixOptions = function(id) {
+      var options = {duration: 1250};
+      var lastID = getLastID();
+
+      if (id == lastID) {
+        var position = puzzle.grid[lastID].position;
+
+        options.complete = function() {
+          setOpenPosition(lastID);
+          getLastTile().velocity(position, {duration: 50});
+          puzzle.isAnimating = false;
+        };
+      }
+
+      return options;
+    };
+
+
+    // Reset
+    // =======================================
+    var reset = function() {
+      puzzle.isAnimating = true;
+
+      for (var id in puzzle.grid) {
+        var tile = puzzle.utility.getTile(id);
+        var position = puzzle.grid[id].position;      
+        
+        tile.velocity(position, {duration: 500});
+      }
+
+      puzzle.isAnimating = false;
+    };
+
+
+    // Public Methods
+    // =======================================
+    puzzle.slide = slide;
+    puzzle.mix = mix;
+    puzzle.reset = reset;
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - Core
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    // Init
+    // =======================================
+    var init = function() {
+      puzzle.setPuzzleSize();
+      puzzle.setGrid();
+      puzzle.setCSS();
+    };
+
+
+    // New Game
+    // =======================================
+    var newGame = function() {
+      if (puzzle.isAnimating) {
+        return false;
+      }
+
+      puzzle.isAnimating = true;
+      puzzle.moves = 0;
+      puzzle.setScore();
+
+      var delay = 250;
+      if (!puzzle.isReady) {
+        puzzle.start();
+        delay = 1000;
+      }
+
+      setTimeout(function(){
+        puzzle.shuffle();
+      }, delay);
+    };
+
+
+    // Set Score
+    // =======================================
+    var setScore = function() {
+      $cache(".moves").html(puzzle.moves);
+    };
+
+
+    // Check
+    // =======================================
+    var check = function() {
+      if (puzzle.utility.isCorrect()) {
+        puzzle.stop();
+      }
+    };
+
+
+    // Public Methods
+    // =======================================
+    puzzle.init = init;
+    puzzle.newGame = newGame;
+    puzzle.setScore = setScore;
+    puzzle.check = check;
+
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - CSS
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    // Set CSS
+    // =======================================
+    var setCSS = function() {
+      setPuzzleSize();
+      setTileSize();
+      setTilePosition();
+      puzzle.setImage();
+    };
+
+    var setPuzzleSize = function() {
+      var size = puzzle.puzzleSize + "px";
+      
+      $cache(".puzzle").css({"height": size, "width": size});
+    };
+
+    var setTileSize = function() {
+      var size = puzzle.utility.getTileSize() + "px";
+      var backgroundSize = puzzle.puzzleSize + "px";
+
+      $(".puzzle__tile").css({"height": size, "width": size, "backgroundSize": backgroundSize});
+    };
+
+    var setTilePosition = function() {
+      var gridPositions = puzzle.utility.getAllGridPositions();
+
+      for (var id in puzzle.grid) {
+        var tile = puzzle.utility.getTile(id);
+        var left = gridPositions[id].left;
+        var top  = gridPositions[id].top;
+        var backgroundPosition = "-" + left + "px -" + top + "px";
+
+        tile.css({"top": top, "left": left, "backgroundPosition": backgroundPosition});
+      }
+    }
+
+
+    // Public Methods
+    // =======================================
+    puzzle.setCSS = setCSS;
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - Grid
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    // References
+    // =======================================
+    var getTileCount = puzzle.utility.getTileCount;
+    var getTileSize = puzzle.utility.getTileSize;
+
+
+    // Set Grid
+    // =======================================
+    var rowIndex;
+    var colIndex;
+
+    var setGrid = function() {
+      puzzle.grid = {};
+      rowIndex = -1;
+      var tileCount = getTileCount();
+      
+      for (var i = 0, i_end = tileCount; i < i_end; i++) {
+        setGridIndexes(i);
+
+        puzzle.grid[i] = {
+          coordinates: [rowIndex, colIndex],
+          position: getGridPosition(i)
+        };
+      }
+    };
+
+    var setGridIndexes = function(i) {
+      colIndex = i % puzzle.gridSize;
+
+      if (i % puzzle.gridSize == 0) {
+        rowIndex += 1;
+      }
+    };
+
+    var getGridPosition = function(i) {
+      return {
+        top: rowIndex * getTileSize(),
+        left: colIndex * getTileSize()
+      };
+    };
+
+    
+    // Public Methods
+    // =======================================
+    puzzle.setGrid = setGrid;
+    
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - HTML
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    // Build Puzzle
+    // =======================================
+    var buildPuzzle = function() {
+      var HTML = "";
+
+      for (var id in puzzle.grid) {
+        HTML += buildTile(id);
+      }
+
+      $cache("#tiles").html(HTML);
+    };
+
+    var buildTile = function(id) {
+      return "<div data-id='" + id + "' class='puzzle__tile'></div>";
+    };
+
+
+    // Public Methods
+    // =======================================
+    puzzle.buildPuzzle = buildPuzzle;
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - Image
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    // Set Image
+    // =======================================
+    var setImage = function() {
+      $(".puzzle__tile").css({"backgroundImage": "url(img/" + puzzle.imageID + ".jpg)"});
+    };
+
+
+    // Next Image
+    // =======================================
+    var nextImage = function() {
+      if (puzzle.imageID == puzzle.utility.getLastImageID()) {
+        puzzle.imageID = 0;
+      }
+      else {
+        puzzle.imageID++;
+      }
+
+      setImage();
+    };
+
+
+    // Last Image
+    // =======================================
+    var lastImage = function() {
+      if (puzzle.imageID == 0) {
+        puzzle.imageID = puzzle.utility.getLastImageID();
+      }
+      else {
+        puzzle.imageID--;
+      }
+
+      setImage();
+    };
+
+
+    // Public Methods
+    // =======================================
+    puzzle.setImage = setImage;
+    puzzle.nextImage = nextImage;
+    puzzle.lastImage = lastImage;
+
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - Shuffle
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    // Shuffle
+    // =======================================
+    var shuffle = function() {
+      var ids = getShuffledIDs();
+
+      if (isValid(ids)) {
+        puzzle.mix(ids);
+      }
+      else {
+        puzzle.shuffle();
+      }
+    };
+
+    var getShuffledIDs = function() {
+      var shuffled = [];
+      var ids = puzzle.utility.getIDs();
+      var n = ids.length;
+      var i;
+
+      while(n) {
+        i = Math.floor(Math.random() * n--);
+        shuffled.push(ids.splice(i, 1)[0]);
+      }
+
+      return shuffled;
+    };
+
+    var isValid = function(ids) {
+      var clone = ids.clone();
+          clone = removeLastID(clone); 
+
+      var inversions = 0;
+      for (var i = 0, i_len = clone.length; i < i_len; i++) {
+        for (var j = i + 1, j_len = clone.length; j < j_len; j++) {
+          if (clone[j] < clone[i]) {
+            inversions++;
+          }
+        }
+      }
+
+      return inversions % 2 == 0;
+    };
+
+    var removeLastID = function(ids) {
+      var lastID = puzzle.utility.getLastID();
+      var lastIDIndex = ids.indexOf(lastID);
+
+      ids.splice(lastIDIndex, 1);
+      return ids;
+    };
+
+
+    // Public Methods
+    // =======================================
+    puzzle.shuffle = shuffle; 
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - Size
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    // Set Grid Size
+    // =======================================
+    var setGridSize = function(size) {
+      if (puzzle.isAnimating ||
+          puzzle.gridSize == size) {
+        return false;
+      }
+
+      puzzle.gridSize = size;
+      toggleRadio();
+      puzzle.stop();
+      puzzle.reset();
+
+      setTimeout(function(){       
+        puzzle.setGrid();
+        puzzle.buildPuzzle();
+        puzzle.setCSS();
+      }, 500);
+    };
+
+    var toggleRadio = function() {
+      $cache(".fa", $cache("#options")).toggleClass("fa-circle fa-circle-o");
+    };
+
+
+    // Set Puzzle Size
+    // =======================================
+    var setPuzzleSize = function() {
+      if (page.breakpoints.mobile.matches) {
+        puzzle.puzzleSize = puzzle.config.mobileSize;
+      }
+      else if (page.breakpoints.tablet.matches) {
+        puzzle.puzzleSize = puzzle.config.tabletSize;
+      }
+      else if (page.breakpoints.desktop.matches) {
+        puzzle.puzzleSize = puzzle.config.desktopSize;
+      }
+    };
+
+
+    // Public Methods
+    // =======================================
+    puzzle.setGridSize = setGridSize;
+    puzzle.setPuzzleSize = setPuzzleSize;
+
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Puzzle - States
+// ===========================================
+
+  var puzzle = (function(puzzle) {
+    "use strict";
+
+    // Start
+    // =======================================
+    var start = function() {
+      puzzle.isReady = true;
+      $cache(".puzzle")
+        .addClass("puzzle--tiled")
+        .removeClass("puzzle--change");
+
+      puzzle.utility.getLastTile()
+        .addClass("puzzle__tile--hidden");
+    };
+
+
+    // Stop
+    // =======================================
+    var stop = function() {
+      puzzle.isReady = false;
+      $cache(".puzzle")
+        .removeClass("puzzle--tiled puzzle--change");
+
+      puzzle.utility.getLastTile()
+        .removeClass("puzzle__tile--hidden");
+    };
+
+
+    // Change
+    // =======================================
+    var change = function() {
+      puzzle.stop();
+      puzzle.reset();
+      $cache(".puzzle").addClass("puzzle--change");
+    };
+
+
+    // Public Methods
+    // =======================================
+    puzzle.start = start;
+    puzzle.stop = stop;
+    puzzle.change = change;
+
+
+    return puzzle;
+  })(puzzle || {});
+
+
+
+// ===========================================
+// Search - A Star
+// ===========================================
+
+  var search = (function(search) {
+    "use strict";
+
+    // AStar Object
+    // =======================================
+    var AStar = function(startNode) {
+      this.startNode = startNode
+      this.queue = getNewQueue(startNode);
+      this.visited = new HashSet();
+      this.saveNode = function(node){ return search.saveNode(this, node)};
+    };
+
+    var getNewQueue = function(startNode) {
+      var queue = new PriorityQueue({comparator: function(a,b){
+        return a.value - b.value;
+      }});
+
+      queue.queue(startNode);
+      return queue;
+    };
+
+
+    // Execute
+    // =======================================
+    AStar.prototype.execute = function() {
+      this.visited.add(JSON.stringify(this.startNode.state));
+
+      while(this.queue.length > 0) {
+        var current = this.queue.dequeue();
+
+        if (utility.compareObjects(current.state, search.goalState)) {
+          return current;
+        }
+
+        this.expandNode(current);
+      }
+    };
+
+
+    // Expand Node
+    // =======================================
+    AStar.prototype.expandNode = function(node) {
+      if (node.canMoveUp) {
+        this.saveNode(node.expandUp());
+      }
+
+      if (node.canMoveDown) {
+        this.saveNode(node.expandDown());
+      }
+
+      if (node.canMoveLeft) {
+        this.saveNode(node.expandLeft());
+      }
+
+      if (node.canMoveRight) {
+        this.saveNode(node.expandRight());
+      }
+    };
+
+
+    // Public Objects
+    // =======================================
+    search.AStar = AStar;
+
+    return search;
+  })(search || {});
+
+
+
+// ===========================================
+// Search - Expand Node
+// ===========================================
+
+  var search = (function(search) {
+    "use strict";
+
+    // Expand Node
+    // =======================================
+    var expandNode = function(node, direction) {
+      var newEmpty = getNewEmptyCoords(node, direction);
+      var newState = moveEmptyTile(node, newEmpty);
+      var newNode = new search.node(newState, newEmpty.row, newEmpty.col, node.depth + 1);
+
+      newNode.path = node.path + newState[node.emptyRow][node.emptyCol] + ",";
+      return newNode;
+    };
+
+    var getNewEmptyCoords = function(node, direction) {
+      switch(direction) {
+        case "up":
+          return {row: node.emptyRow - 1, col: node.emptyCol};
+
+        case "down":
+          return {row: node.emptyRow + 1, col: node.emptyCol};
+
+        case "left":
+          return {row: node.emptyRow, col: node.emptyCol - 1};
+
+        case "right":
+          return {row: node.emptyRow, col: node.emptyCol + 1};
+      };
+    };
+
+    var moveEmptyTile = function(node, newEmpty) {
+      var newState = node.state.clone();
+
+      var temp = newState[newEmpty.row][newEmpty.col];
+      newState[newEmpty.row][newEmpty.col] = newState[node.emptyRow][node.emptyCol];
+      newState[node.emptyRow][node.emptyCol] = temp;
+
+      return newState;
+    };
+
+
+    // Public Methods
+    // =======================================
+    search.expandNode = expandNode;
+
+    return search;
+  })(search || {});
+
+
+
+// ===========================================
+// Search - Heuristic
+// ===========================================
+
+  var search = (function(search) {
+    "use strict";
+
+    var heuristic = function(nodeState) {
+      return search.manhattanDistance(nodeState) + search.linearConflicts(nodeState);
+    };
+    
+
+    // Public Methods
+    // =======================================
+    search.heuristic = heuristic;
+
+    return search;
+  })(search || {});
+
+
+
+// ===========================================
+// Search - Linear Conflicts
+// ===========================================
+
+  var search = (function(search) {
+    "use strict";
+
+    var linearConflicts = function(nodeState) {
+      var result = 0;
+
+      for (var i = 0, i_len = nodeState.length; i < i_len; i++) {
+        result += findConflicts(nodeState, i, 1);
+      }
+
+      for (var i = 0, i_len = nodeState.length; i < i_len; i++) {
+        result += findConflicts(nodeState, i, 0);
+      }
+
+      return result;
+    };
+
+    var findConflicts = function(nodeState, i, dimension) {
+      var result = 0;
+      var tilesRelated = [];
+
+      for (var j = 0, j_len = nodeState.length - 1; j < j_len && !tilesRelated.includes(j); j++) {
+        
+        for (var k = j + 1, k_len = nodeState.length; k < k_len && !tilesRelated.includes(j); k++) {
+          
+          var moves;
+          if (dimension == 1) {
+            moves = inConflict(i, nodeState[i][j], nodeState[i][k], j, k, dimension);
+          }
+          else {
+            moves = inConflict(i, nodeState[j][i], nodeState[k][i], j, k, dimension);
+          }
+
+
+          if (moves == 0) { 
+            continue; 
+          }
+
+          result += 2;
+          tilesRelated.push([j,k]);
+          break;
+        }
+      }
+
+      return result;
+    };
+
+    var inConflict = function(index, a, b, indexA, indexB, dimension) {
+      var indexGoalA = -1;
+      var indexGoalB = -1;
+
+      for (var i = 0, i_len = search.goalState.length; i < i_len; i++) {
+        
+        if (dimension == 1 && search.goalState[index][i] == a) {
+          indexGoalA = i;
+        }
+        else if (dimension == 1 && search.goalState[index][i] == b) {
+          indexGoalB = i;
+        }
+        else if (dimension == 0 && search.goalState[i][index] == a) {
+          indexGoalA = i;
+        }
+        else if (dimension == 0 && search.goalState[i][index] == b) {
+          indexGoalB = i;
+        }
+      }
+
+      return (indexGoalA >= 0 && indexGoalB >= 0) && 
+             ((indexA < indexB && indexGoalA > indexGoalB) || (indexA > indexB && indexGoalA < indexGoalB))
+             ? 2
+             : 0;
+    };
+
+
+    // Public Methods
+    // =======================================
+    search.linearConflicts = linearConflicts;
+
+    return search;
+  })(search || {});
+
+
+
+// ===========================================
+// Search - Manhatten Distance
+// ===========================================
+
+  var search = (function(search) {
+    "use strict";
+
+    var manhattanDistance = function(nodeState) {
+      var result = 0;
+
+      for (var i = 0, i_len = nodeState.length; i < i_len; i++) {
+        
+        for (var j = 0, j_len = nodeState[i].length; j < j_len; j++) {
+          
+          var id = nodeState[i][j];
+          var found = false;
+
+          for (var k = 0, k_len = search.goalState.length; k < k_len; k++) {
+            
+            for (var l = 0, l_len = search.goalState[k].length; l < l_len; l++) {
+              
+              if (search.goalState[k][l] == id) {
+                result += Math.abs(k - i) + Math.abs(j - l);
+                found = true;
+                break;
+              }
+            }
+
+            if (found) { break; }
+          }
+        }
+      }
+
+      return result;
+    };
+
+
+    // Public Methods
+    // =======================================
+    search.manhattanDistance = manhattanDistance;
+
+    return search;
+  })(search || {});
+
+
+
+// ===========================================
+// Search - Node
+// ===========================================
+
+  var search = (function(search) {
+    "use strict";
+
+    // Node Object
+    // =======================================
+    var node = function(state, emptyRow, emptyCol, depth) {
+      this.path = "";
+      this.size = state.length;
+      this.value = 0;
+      this.setValue = function() { this.value = this.depth + search.heuristic(this.state)};
+      
+      this.state = state;
+      this.depth = depth;
+      this.emptyRow = emptyRow;
+      this.emptyCol = emptyCol;
+
+      this.canMoveUp = canMoveUp(this);
+      this.canMoveDown = canMoveDown(this);
+      this.canMoveLeft = canMoveLeft(this);
+      this.canMoveRight = canMoveRight(this);
+
+      this.expandUp = function() { return search.expandNode(this, "up") };
+      this.expandDown = function() { return search.expandNode(this, "down") };
+      this.expandLeft = function() { return search.expandNode(this, "left") };
+      this.expandRight = function() { return search.expandNode(this, "right") };
+    };
+
+
+    // Can Move Booleans
+    // =======================================
+    var canMoveUp = function(node) {
+      return node.emptyRow > 0;
+    };
+
+    var canMoveDown = function(node) {
+      return node.emptyRow < node.size - 1;
+    };
+
+    var canMoveLeft = function(node) {
+      return node.emptyCol > 0;
+    };
+
+    var canMoveRight = function(node) {
+      return node.emptyCol < node.size - 1;
+    };
+
+
+    // Public Objects
+    // =======================================
+    search.node = node;
+
+    return search;
+  })(search || {});
+
+
+
+// ===========================================
+// Search - Save Node
+// ===========================================
+
+  var search = (function(search) {
+    "use strict";
+    
+    var saveNode = function(astar, node) {
+      var strState = JSON.stringify(node.state);
+
+      if (astar.visited.contains(strState)) {
+        return false;
+      }
+
+      node.setValue();
+      astar.queue.queue(node);
+      astar.visited.add(strState);
+    };
+
+
+    // Public Methods
+    // =======================================
+    search.saveNode = saveNode;
+
+    return search;
+  })(search || {});
+
+
+
+// ===========================================
+// Search - Start
+// ===========================================
+
+  var search = (function(search) {
+    "use strict";
+
+    var start = function() {
+      if (!puzzle.isReady || puzzle.isAnimating){
+        return false;
+      }
+
+      var currentState = search.utility.getCurrentState();
+      search.goalState = search.utility.getFinalState();
+
+      var openCoords = puzzle.utility.getOpenCoordinates();
+
+      var startNode = new search.node(currentState, openCoords[0], openCoords[1], 0);
+      
+      var astar = new search.AStar(startNode);
+
+      // var startTime = new Date();
+
+      var result = astar.execute();
+
+      // var endTime = new Date();
+
+      // console.log("finished in " + (endTime - startTime));
+
+      if (result) {
+        var temp = result.path.split(",");
+        temp.pop();
+
+        var i = 0;
+        var interval = setInterval(function() {
+        
+          puzzle.slide(temp[i]);
+          i++;
+
+          if (i >= temp.length) {
+            clearInterval(interval);
+          }
+        }, 300);
+       
+      }
+      else {
+        alert("Could not find the solution.")
+      }
+    };
+
+
+    // Public Objects
+    // =======================================
+    search.start = start;
+
+    return search;
+  })(search || {});
+
+
+
+// ===========================================
+// Search - Utility
+// ===========================================
+
+  var search = (function(search) {
+    "use strict";
+
+    
+    // Get State
+    // =======================================
+    var getCurrentState = function() {
+      var tilePos = puzzle.utility.getAllTilePositions();
+      var gridPos = puzzle.utility.getAllGridPositions();
+
+      var IDs = [];
+      for (var i in gridPos) {
+
+        if (utility.compareObjects(gridPos[i], puzzle.openPosition)) {
+          IDs.push(puzzle.utility.getLastID());
+          continue;
+        }
+
+        for (var j in tilePos) {
+          if (utility.compareObjects(gridPos[i], tilePos[j])) {
+            IDs.push(j);
+            break;
+          }
+        }
+      }
+
+      return formatArray(IDs);
+    };
+
+    var getFinalState = function() {
+      return formatArray(puzzle.utility.getIDs());
+    };
+
+    var formatArray = function(array) {
+      var formatted = [];
+      var row = [];
+
+      for (var i = 0, i_len = array.length; i < i_len; i++) {
+        var id = parseInt(array[i]);
+        row.push(id);
+
+        if (row.length == puzzle.gridSize) {
+          formatted.push(row);
+          row = [];
+        }
+      }
+
+      return formatted;
+    };
+
+
+    // Public Methods
+    // =======================================
+    search.utility = {
+      getFinalState: getFinalState,
+      getCurrentState: getCurrentState
+    };
+
+    return search;
+  })(search || {});
+
+
+
+// ===========================================
+// Search - Variables
+// ===========================================
+
+  var search = (function(search) {
+    "use strict";
+
+    // Variables
+    // =======================================    
+    search.goalState;
+
+    return search;
+  })(search || {});
 
 
 
@@ -5288,6 +6896,10 @@
 
       $cache("#btnChange").on("click", function(){
         puzzle.change();
+      });
+
+      $cache("#btnSolve").on("click", function(){
+        search.start();
       });
     };
 

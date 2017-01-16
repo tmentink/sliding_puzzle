@@ -54,18 +54,18 @@
       var indexGoalA = -1;
       var indexGoalB = -1;
 
-      for (var i = 0, i_len = search.goalState.length; i < i_len; i++) {
+      for (var i = 0, i_len = search.finalState.length; i < i_len; i++) {
         
-        if (dimension == 1 && search.goalState[index][i] == a) {
+        if (dimension == 1 && search.finalState[index][i] == a) {
           indexGoalA = i;
         }
-        else if (dimension == 1 && search.goalState[index][i] == b) {
+        else if (dimension == 1 && search.finalState[index][i] == b) {
           indexGoalB = i;
         }
-        else if (dimension == 0 && search.goalState[i][index] == a) {
+        else if (dimension == 0 && search.finalState[i][index] == a) {
           indexGoalA = i;
         }
-        else if (dimension == 0 && search.goalState[i][index] == b) {
+        else if (dimension == 0 && search.finalState[i][index] == b) {
           indexGoalB = i;
         }
       }

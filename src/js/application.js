@@ -6356,72 +6356,84 @@ module.exports = BinaryHeapStrategy = (function() {
 
 
 // ===========================================
-// Search - A Star
+// Search - Core
 // ===========================================
 
   var search = (function(search) {
     "use strict";
 
-    // AStar Object
+    // Execute Search
     // =======================================
-    var AStar = function(startNode) {
-      this.startNode = startNode
-      this.queue = getNewQueue(startNode);
-      this.visited = new HashSet();
-      this.saveNode = function(node){ return search.saveNode(this, node)};
-    };
+    var executeSearch = function() {
+      if (!puzzle.isReady || puzzle.isAnimating){
+        return false;
+      }
 
-    var getNewQueue = function(startNode) {
-      var queue = new PriorityQueue({comparator: function(a,b){
-        return a.value - b.value;
-      }});
+      search.init();
 
-      queue.queue(startNode);
-      return queue;
-    };
+      while(search.queue.length > 0) {
+        search.currentNode = search.queue.dequeue();
 
-
-    // Execute
-    // =======================================
-    AStar.prototype.execute = function() {
-      this.visited.add(JSON.stringify(this.startNode.state));
-
-      while(this.queue.length > 0) {
-        var current = this.queue.dequeue();
-
-        if (utility.compareObjects(current.state, search.goalState)) {
-          return current;
+        if (solvedPuzzled()) {
+          return animateResult();
         }
 
-        this.expandNode(current);
+        expandNode();
       }
+    };
+
+
+    // Solved
+    // =======================================
+    var solvedPuzzled = function() { 
+      return utility.compareObjects(search.currentNode.state, search.finalState)
     };
 
 
     // Expand Node
     // =======================================
-    AStar.prototype.expandNode = function(node) {
+    var expandNode = function() {
+      var node = search.currentNode;
+
       if (node.canMoveUp) {
-        this.saveNode(node.expandUp());
+        search.saveNode(node.expandUp());
       }
 
       if (node.canMoveDown) {
-        this.saveNode(node.expandDown());
+        search.saveNode(node.expandDown());
       }
 
       if (node.canMoveLeft) {
-        this.saveNode(node.expandLeft());
+        search.saveNode(node.expandLeft());
       }
 
       if (node.canMoveRight) {
-        this.saveNode(node.expandRight());
+        search.saveNode(node.expandRight());
       }
     };
 
 
-    // Public Objects
+    // Animate Result
     // =======================================
-    search.AStar = AStar;
+    var animateResult = function() { 
+      var ids = search.currentNode.path.split(",");
+      ids.pop();
+
+      var i = 0;
+      var interval = setInterval(function(){
+        puzzle.slide(ids[i]);
+        i++;
+
+        if (i >= ids.length) {
+          clearInterval(interval);
+        }
+      }, 300);
+    };
+
+
+    // Public Methods
+    // =======================================
+    search.execute = executeSearch;
 
     return search;
   })(search || {});
@@ -6504,6 +6516,58 @@ module.exports = BinaryHeapStrategy = (function() {
 
 
 // ===========================================
+// Search - Init
+// ===========================================
+
+  var search = (function(search) {
+    "use strict";
+
+    var init = function() {
+      setStartNode();
+      setFinalState();
+      setVistedStates();
+      setQueue();
+    };
+
+
+    var setStartNode = function() {
+      var currentState = search.utility.getCurrentState();
+      var openCoords = puzzle.utility.getOpenCoordinates();
+
+      search.startNode = new search.node(currentState, openCoords[0], openCoords[1], 0);
+    };
+
+
+    var setFinalState = function() {
+      search.finalState = search.utility.getFinalState();
+    };
+
+
+    var setVistedStates = function() {
+      search.visitedStates = new HashSet();
+      search.visitedStates.add(JSON.stringify(search.startNode.state));
+    };
+    
+
+    var setQueue = function() {
+      search.queue = new PriorityQueue({comparator: function(a,b){
+        return a.value - b.value;
+      }});
+
+      search.queue.queue(search.startNode);
+    };
+
+
+    // Public Methods
+    // =======================================
+    search.init = init;
+
+    return search;
+  })(search || {});
+
+
+
+// ===========================================
 // Search - Linear Conflicts
 // ===========================================
 
@@ -6558,18 +6622,18 @@ module.exports = BinaryHeapStrategy = (function() {
       var indexGoalA = -1;
       var indexGoalB = -1;
 
-      for (var i = 0, i_len = search.goalState.length; i < i_len; i++) {
+      for (var i = 0, i_len = search.finalState.length; i < i_len; i++) {
         
-        if (dimension == 1 && search.goalState[index][i] == a) {
+        if (dimension == 1 && search.finalState[index][i] == a) {
           indexGoalA = i;
         }
-        else if (dimension == 1 && search.goalState[index][i] == b) {
+        else if (dimension == 1 && search.finalState[index][i] == b) {
           indexGoalB = i;
         }
-        else if (dimension == 0 && search.goalState[i][index] == a) {
+        else if (dimension == 0 && search.finalState[i][index] == a) {
           indexGoalA = i;
         }
-        else if (dimension == 0 && search.goalState[i][index] == b) {
+        else if (dimension == 0 && search.finalState[i][index] == b) {
           indexGoalB = i;
         }
       }
@@ -6607,11 +6671,11 @@ module.exports = BinaryHeapStrategy = (function() {
           var id = nodeState[i][j];
           var found = false;
 
-          for (var k = 0, k_len = search.goalState.length; k < k_len; k++) {
+          for (var k = 0, k_len = search.finalState.length; k < k_len; k++) {
             
-            for (var l = 0, l_len = search.goalState[k].length; l < l_len; l++) {
+            for (var l = 0, l_len = search.finalState[k].length; l < l_len; l++) {
               
-              if (search.goalState[k][l] == id) {
+              if (search.finalState[k][l] == id) {
                 result += Math.abs(k - i) + Math.abs(j - l);
                 found = true;
                 break;
@@ -6646,7 +6710,7 @@ module.exports = BinaryHeapStrategy = (function() {
     // Node Object
     // =======================================
     var node = function(state, emptyRow, emptyCol, depth) {
-      this.path = "";
+      this.path = [];
       this.size = state.length;
       this.value = 0;
       this.setValue = function() { this.value = this.depth + search.heuristic(this.state)};
@@ -6702,83 +6766,20 @@ module.exports = BinaryHeapStrategy = (function() {
 
   var search = (function(search) {
     "use strict";
-    
-    var saveNode = function(astar, node) {
-      var strState = JSON.stringify(node.state);
 
-      if (astar.visited.contains(strState)) {
-        return false;
+    var saveNode = function(node) {
+      var strState = JSON.stringify(node.state)
+
+      if (!search.visitedStates.contains(strState)) {
+        node.setValue();
+        search.queue.queue(node);
+        search.visitedStates.add(strState);
       }
-
-      node.setValue();
-      astar.queue.queue(node);
-      astar.visited.add(strState);
     };
-
 
     // Public Methods
     // =======================================
     search.saveNode = saveNode;
-
-    return search;
-  })(search || {});
-
-
-
-// ===========================================
-// Search - Start
-// ===========================================
-
-  var search = (function(search) {
-    "use strict";
-
-    var start = function() {
-      if (!puzzle.isReady || puzzle.isAnimating){
-        return false;
-      }
-
-      var currentState = search.utility.getCurrentState();
-      search.goalState = search.utility.getFinalState();
-
-      var openCoords = puzzle.utility.getOpenCoordinates();
-
-      var startNode = new search.node(currentState, openCoords[0], openCoords[1], 0);
-      
-      var astar = new search.AStar(startNode);
-
-      // var startTime = new Date();
-
-      var result = astar.execute();
-
-      // var endTime = new Date();
-
-      // console.log("finished in " + (endTime - startTime));
-
-      if (result) {
-        var temp = result.path.split(",");
-        temp.pop();
-
-        var i = 0;
-        var interval = setInterval(function() {
-        
-          puzzle.slide(temp[i]);
-          i++;
-
-          if (i >= temp.length) {
-            clearInterval(interval);
-          }
-        }, 300);
-       
-      }
-      else {
-        alert("Could not find the solution.")
-      }
-    };
-
-
-    // Public Objects
-    // =======================================
-    search.start = start;
 
     return search;
   })(search || {});
@@ -6792,7 +6793,6 @@ module.exports = BinaryHeapStrategy = (function() {
   var search = (function(search) {
     "use strict";
 
-    
     // Get State
     // =======================================
     var getCurrentState = function() {
@@ -6861,7 +6861,11 @@ module.exports = BinaryHeapStrategy = (function() {
 
     // Variables
     // =======================================    
-    search.goalState;
+    search.queue;
+    search.startNode;
+    search.finalState;
+    search.currentNode;
+    search.visitedStates;
 
     return search;
   })(search || {});
@@ -6899,7 +6903,7 @@ module.exports = BinaryHeapStrategy = (function() {
       });
 
       $cache("#btnSolve").on("click", function(){
-        search.start();
+        search.execute();
       });
     };
 

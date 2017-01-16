@@ -6,7 +6,6 @@
   var search = (function(search) {
     "use strict";
 
-    
     // Get State
     // =======================================
     var getCurrentState = function() {

@@ -30,7 +30,7 @@
       });
 
       $cache("#btnSolve").on("click", function(){
-        search.start();
+        search.execute();
       });
     };
 

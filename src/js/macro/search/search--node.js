@@ -9,7 +9,7 @@
     // Node Object
     // =======================================
     var node = function(state, emptyRow, emptyCol, depth) {
-      this.path = "";
+      this.path = [];
       this.size = state.length;
       this.value = 0;
       this.setValue = function() { this.value = this.depth + search.heuristic(this.state)};

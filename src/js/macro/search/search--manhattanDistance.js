@@ -16,11 +16,11 @@
           var id = nodeState[i][j];
           var found = false;
 
-          for (var k = 0, k_len = search.goalState.length; k < k_len; k++) {
+          for (var k = 0, k_len = search.finalState.length; k < k_len; k++) {
             
-            for (var l = 0, l_len = search.goalState[k].length; l < l_len; l++) {
+            for (var l = 0, l_len = search.finalState[k].length; l < l_len; l++) {
               
-              if (search.goalState[k][l] == id) {
+              if (search.finalState[k][l] == id) {
                 result += Math.abs(k - i) + Math.abs(j - l);
                 found = true;
                 break;

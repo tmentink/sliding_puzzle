@@ -39,19 +39,19 @@
     var expandNode = function() {
       var node = search.currentNode;
 
-      if (node.canMoveUp) {
+      if (node.canMoveUp()) {
         search.saveNode(node.expandUp());
       }
 
-      if (node.canMoveDown) {
+      if (node.canMoveDown()) {
         search.saveNode(node.expandDown());
       }
 
-      if (node.canMoveLeft) {
+      if (node.canMoveLeft()) {
         search.saveNode(node.expandLeft());
       }
 
-      if (node.canMoveRight) {
+      if (node.canMoveRight()) {
         search.saveNode(node.expandRight());
       }
     };

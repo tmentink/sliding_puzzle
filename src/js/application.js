@@ -6395,19 +6395,19 @@ module.exports = BinaryHeapStrategy = (function() {
     var expandNode = function() {
       var node = search.currentNode;
 
-      if (node.canMoveUp) {
+      if (node.canMoveUp()) {
         search.saveNode(node.expandUp());
       }
 
-      if (node.canMoveDown) {
+      if (node.canMoveDown()) {
         search.saveNode(node.expandDown());
       }
 
-      if (node.canMoveLeft) {
+      if (node.canMoveLeft()) {
         search.saveNode(node.expandLeft());
       }
 
-      if (node.canMoveRight) {
+      if (node.canMoveRight()) {
         search.saveNode(node.expandRight());
       }
     };
@@ -6452,7 +6452,7 @@ module.exports = BinaryHeapStrategy = (function() {
     var expandNode = function(node, direction) {
       var newEmpty = getNewEmptyCoords(node, direction);
       var newState = moveEmptyTile(node, newEmpty);
-      var newNode = new search.node(newState, newEmpty.row, newEmpty.col, node.depth + 1);
+      var newNode = new search.Node(newState, newEmpty.row, newEmpty.col, node.depth + 1);
 
       newNode.path = node.path + newState[node.emptyRow][node.emptyCol] + ",";
       return newNode;
@@ -6461,16 +6461,28 @@ module.exports = BinaryHeapStrategy = (function() {
     var getNewEmptyCoords = function(node, direction) {
       switch(direction) {
         case "up":
-          return {row: node.emptyRow - 1, col: node.emptyCol};
+          return {
+            row: node.emptyRow - 1, 
+            col: node.emptyCol
+          };
 
         case "down":
-          return {row: node.emptyRow + 1, col: node.emptyCol};
+          return {
+            row: node.emptyRow + 1, 
+            col: node.emptyCol
+          };
 
         case "left":
-          return {row: node.emptyRow, col: node.emptyCol - 1};
+          return {
+            row: node.emptyRow, 
+            col: node.emptyCol - 1
+          };
 
         case "right":
-          return {row: node.emptyRow, col: node.emptyCol + 1};
+          return {
+            row: node.emptyRow, 
+            col: node.emptyCol + 1
+          };
       };
     };
 
@@ -6534,7 +6546,7 @@ module.exports = BinaryHeapStrategy = (function() {
       var currentState = search.utility.getCurrentState();
       var openCoords = puzzle.utility.getOpenCoordinates();
 
-      search.startNode = new search.node(currentState, openCoords[0], openCoords[1], 0);
+      search.startNode = new search.Node(currentState, openCoords[0], openCoords[1], 0);
     };
 
 
@@ -6709,51 +6721,32 @@ module.exports = BinaryHeapStrategy = (function() {
 
     // Node Object
     // =======================================
-    var node = function(state, emptyRow, emptyCol, depth) {
-      this.path = [];
+    var Node = function(state, emptyRow, emptyCol, depth) {
+      this.path = "";
       this.size = state.length;
       this.value = 0;
-      this.setValue = function() { this.value = this.depth + search.heuristic(this.state)};
-      
       this.state = state;
       this.depth = depth;
       this.emptyRow = emptyRow;
       this.emptyCol = emptyCol;
-
-      this.canMoveUp = canMoveUp(this);
-      this.canMoveDown = canMoveDown(this);
-      this.canMoveLeft = canMoveLeft(this);
-      this.canMoveRight = canMoveRight(this);
-
-      this.expandUp = function() { return search.expandNode(this, "up") };
-      this.expandDown = function() { return search.expandNode(this, "down") };
-      this.expandLeft = function() { return search.expandNode(this, "left") };
-      this.expandRight = function() { return search.expandNode(this, "right") };
     };
 
-
-    // Can Move Booleans
-    // =======================================
-    var canMoveUp = function(node) {
-      return node.emptyRow > 0;
+    Node.prototype = {
+      setValue: function() { this.value = this.depth + search.heuristic(this.state); },
+      canMoveUp: function() { return this.emptyRow > 0; },
+      canMoveDown: function() { return this.emptyRow < this.size - 1; },
+      canMoveLeft: function() { return this.emptyCol > 0; },
+      canMoveRight: function() { return this.emptyCol < this.size - 1; },
+      expandUp: function() { return search.expandNode(this, "up"); },
+      expandDown: function() { return search.expandNode(this, "down"); },
+      expandLeft: function() { return search.expandNode(this, "left"); },
+      expandRight: function() { return search.expandNode(this, "right"); }
     };
-
-    var canMoveDown = function(node) {
-      return node.emptyRow < node.size - 1;
-    };
-
-    var canMoveLeft = function(node) {
-      return node.emptyCol > 0;
-    };
-
-    var canMoveRight = function(node) {
-      return node.emptyCol < node.size - 1;
-    };
-
+    
 
     // Public Objects
     // =======================================
-    search.node = node;
+    search.Node = Node;
 
     return search;
   })(search || {});

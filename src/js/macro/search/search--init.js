@@ -18,7 +18,7 @@
       var currentState = search.utility.getCurrentState();
       var openCoords = puzzle.utility.getOpenCoordinates();
 
-      search.startNode = new search.node(currentState, openCoords[0], openCoords[1], 0);
+      search.startNode = new search.Node(currentState, openCoords[0], openCoords[1], 0);
     };
 
 
